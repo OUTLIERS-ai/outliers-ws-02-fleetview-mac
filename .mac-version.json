@@ -1,10 +1,10 @@
 {
   "main": "outliers-ws-02-fleetview",
-  "main_commit": "4d635b70ba7fe9984b091c65508c4cc3ac3a50b2",
+  "main_commit": "4cefabf2f04b15e11c7f44bb0f8dd4caad88ea45",
   "mac": "outliers-ws-02-fleetview-mac",
   "macgen_commit": "9c2578fc+uncommitted",
   "date": "2026-09-25",
-  "fingerprint": "fd272e3bb0d35731a206eec4785b78746fabe12580761ab110f35d8373846401",
+  "fingerprint": "36886b1ddfb3ac2c42fb60af955f2cc1a326decd5e6c9c3f4559a33fb86e35f1",
   "left_out_of_fingerprint": [
     ".mac-version.json",
     "guide/FleetView Every Agent Session, Live, on a Single Screen (Mac).pdf"
@@ -28,7 +28,7 @@
     {
       "path": "README.md",
       "category": "changed",
-      "sha256": "11dcb816152cdca580ba92f0ede9ea1d3b429ecf7a37f32516dada4befa4fa50"
+      "sha256": "1858ab2971511762aa9c63fbd9a0688f0b58b2aaa4fa1665f0f19cbd791c585b"
     },
     {
       "path": "UPSTREAM-LICENSE",
@@ -202,7 +202,7 @@
     {
       "path": "install.py",
       "category": "same",
-      "sha256": "638959acce92c4770ec7df5d306bb626a1446b5d9d107045b89b1320a66e19c5"
+      "sha256": "26fea0b091bda39ccc9351ed99aae8f4caa2fbaf3c4a7cd9346c9483733ab7a7"
     },
     {
       "path": "lib/config.js",
@@ -328,6 +328,11 @@
       "path": "tests/mac/mac_printed_commands_python3.py",
       "category": "same",
       "sha256": "42edfef5c7acf197ce1e25669a528ec98f318efd9b5b05e7065cd61f5119feb9"
+    },
+    {
+      "path": "tests/mac/mac_reinstall_after_uninstall.py",
+      "category": "same",
+      "sha256": "2ec0a8273176f256015b1c92753dc21ade7c5bff8e05f3e0737851571abe3d84"
     },
     {
       "path": "tests/mac/mac_signin_wording.py",

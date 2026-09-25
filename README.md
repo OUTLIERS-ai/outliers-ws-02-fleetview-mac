@@ -79,4 +79,4 @@ Built on [Stargx/claude-code-dashboard](https://github.com/Stargx/claude-code-da
 
 The full guide, including how it was built and 8 ways to fit it to your own setup, is in `guide/GUIDE.md`.
 
-This repo is made automatically from outliers-ws-02-fleetview@4d635b7. To report a problem or suggest a change, use that repo, not this one.
+This repo is made automatically from outliers-ws-02-fleetview@4cefabf. To report a problem or suggest a change, use that repo, not this one.

@@ -378,6 +378,8 @@ def install_launcher(node):
     if path.exists():
         old = path.read_bytes().decode(launcher_encoding(), errors="replace")
         if old == text:
+            if sys.platform == "darwin":
+                clear_disabled_mark()
             return "unchanged"
         if LAUNCHER_MARK not in old:
             say("  %s already exists and was not made by this installer. Leaving it alone." % path)
@@ -391,8 +393,17 @@ def install_launcher(node):
     tmp.write_bytes(text.encode(launcher_encoding()))  # bytes: keep the exact line endings
     os.replace(tmp, path)
     if sys.platform == "darwin":
+        clear_disabled_mark()
         say("  To start it now, without signing out and in again, run:  launchctl load -w \"%s\"" % path)
     return "written"
+
+
+def clear_disabled_mark():
+    """Mac: an uninstall made before wave 6 round 3 switched the job off with `launchctl unload -w`,
+    which leaves a lasting "disabled" mark on the label; while it is there the Mac refuses to start
+    the LaunchAgent at sign-in. Clearing it is harmless when there is none."""
+    subprocess.run(["launchctl", "enable", "gui/%d/%s" % (os.getuid(), MAC_LABEL)], capture_output=True, text=True,
+                   creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
 
 
 def port_in_use(port):
@@ -597,8 +608,11 @@ def uninstall():
             if sys.platform == "darwin":
                 # Switch the job off first, while its file still exists: printing a launchctl line and
                 # then deleting the file it names left a line nobody could run (wave 6, 2026-09-25).
-                r = subprocess.run(["launchctl", "unload", "-w", str(path)], capture_output=True, text=True,
-                                   creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+                # bootout, not `unload -w`: the -w writes a lasting "disabled" mark for the label, and a later
+                # install's LaunchAgent is then refused ("Bootstrap failed: 5") and never starts at sign-in
+                # (recorded Mac run 36157335920, wave 6 round 3).
+                r = subprocess.run(["launchctl", "bootout", "gui/%d" % os.getuid(), str(path)], capture_output=True,
+                                   text=True, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
                 if r.returncode == 0:
                     say("  Switched off the LaunchAgent that started FleetView when you switched on your Mac and signed in.")
                 else:
