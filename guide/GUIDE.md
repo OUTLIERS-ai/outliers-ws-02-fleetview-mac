@@ -20,7 +20,7 @@ This is piece 2 of 4 in the agent workspace. Install them in order: 1 agent-flow
 | Word | What it means here |
 |---|---|
 | Session | 1 conversation with Claude Code, running in 1 terminal window. |
-| Terminal | The text window where you type commands. On a Mac the app is called Terminal: press Command and Space, type `Terminal`, press Enter. |
+| Terminal | The text window where you type commands. On a Mac the app is called Terminal: press Command and Space together, type `Terminal`, press Return. |
 | Token | The unit Claude's usage is counted in. 1 token is roughly 3 quarters of a word. |
 | M, B | Million and billion. 41.3M tokens means 41.3 million tokens. |
 | Context window | How much text a session can keep in view at once: 200,000 tokens usually, 1,000,000 on some models. |
@@ -116,7 +116,7 @@ That day Ashley installed agent-flow (piece 1 of 4), an open-source tool that dr
 Claude then tried the other open-source dashboards for Claude Code:
 
 - **Claude-Code-Agent-Monitor** (456 stars at the time) was ruled out first. On its first start it rewrote the hooks in Claude Code's own settings file, `~/.claude/settings.json`, without asking. Then it tried to import Ashley's entire session history, the log files Claude Code had written, 9.4 gigabytes of them across 3,842 files. That used about 10 processor cores and crashed its own web server. It was stopped and its hooks were removed.
-- **claude-view** was ruled out because it runs on macOS only, and Ashley works on a PC. 2 other tools were ruled out because they needed Docker (a tool for running programs in a sealed box) or Bash (the Mac and Linux command line), which are awkward on his PC.
+- **claude-view** was ruled out because it runs on macOS only, and Ashley works on a PC. It would run on your Mac, but this guide does not cover it. 2 other tools were ruled out because they needed Docker (a tool for running programs in a sealed box) or Bash (the Mac and Linux command line), which are awkward on his PC.
 - **claude-code-dashboard**, by the GitHub user Stargx, was picked because it needs no hooks. It reads the log files in `~/.claude/projects` directly, so every folder on the computer is covered with no set-up. Its card view, unchanged, was running by 16:56.
 
 What was kept from it: the code that watches the log files and reads new lines as they arrive, the first version of the working, waiting and idle rules, and the card page. Its port was changed from 3001 to 3010, because agent-flow already used 3001. (Its instructions file said you could choose the port with a setting called `PORT`; the code ignored that setting.)
@@ -157,7 +157,7 @@ The same evening Claude also added a map of all 73 of Ashley's agents, called Fl
 
 - **2026-07-27:** Ashley's list of outside tools he tracks moved the Stargx dashboard from "give to members" to "keep an eye on": 10 stars, no change since 2026-03-09, "fine for us because we can fix it", but too thin to put in front of the 6 people paying for his Outliers programme at the time.
 - **2026-08-12:** the last day Ashley's own notes show FleetView running.
-- **2026-09-22:** nothing answered on port 3010, although the file that started it with the computer was still there. Why it stopped starting by itself when the computer started is not recorded. A copy started by hand from a temporary folder came up in about 2 seconds.
+- **2026-09-22:** nothing answered on port 3010, although the file that started it each time his PC started was still there. Why it stopped starting by itself is not recorded. A copy started by hand from a temporary folder came up in about 2 seconds.
 
 ![Ashley's real FleetView on 2026-09-22, from that copy: 7 sessions round 4 of his folders: Nexus (his CRM), The Observatory (a research folder), SB and Second Brain (2 second-brain folders); the 5-hour window at 340.84M tokens used, 374.00M projected by the end, 26 minutes until it resets; 3.44B tokens (3.44 billion) over the last 7 days. In this old copy the ring around each circle used blue, amber and red, the same colours the circle itself uses for what the session is doing, so the 2 ran together. Your copy uses a plain grey ring. (Ashley's own PC, not a Mac)](img/original-fleetview-2026-09-22.png)
 
@@ -203,33 +203,39 @@ If you would rather have a bigger, polished tool that someone else maintains, lo
 
 ### Before you start on a Mac
 
-**Python.** Install Python from https://www.python.org/downloads/macos/ (the macOS installer; we tested 3.14.7). When it finishes, double-click **Install Certificates.command** and **Update Shell Profile.command** in the Python folder inside Applications, then open a new Terminal window. Check with `python3 -c "import sys; print(sys.prefix)"`: it must print a line starting `/Library/Frameworks/Python.framework`. If it starts `/opt/homebrew` or `/usr/local/Cellar`, your Terminal uses Homebrew's Python: every command here still works, and the self-checks below use a private Python folder, which works with either.
+**Python.** Install Python from https://www.python.org/downloads/macos/ (the link labelled "macOS installer"; we tested 3.14.7). When it finishes, double-click **Install Certificates.command** and **Update Shell Profile.command** in the Python folder inside Applications, then open a new Terminal window. Check with `python3 -c "import sys; print(sys.prefix)"`: it should print a line starting `/Library/Frameworks/Python.framework`. If it starts `/opt/homebrew` or `/usr/local/Cellar`, your Terminal uses Homebrew's Python (Homebrew is an add-on installer many Mac owners use). Every command here still works. The self-checks run from a private Python folder: a folder in your home folder with its own copy of Python's add-ons, which works with python.org's Python and with Homebrew's.
 
-**Node.js.** Install the LTS version from https://nodejs.org (we tested v24.21.0), open a new Terminal window, and check with `node --version`: `v22` or higher.
+**Node.js.** Install the LTS version (long-term support: the version that gets security fixes the longest) from https://nodejs.org (we tested v24.21.0), open a new Terminal window, and check with `node --version`: `v22` or higher.
 
-**The first `git`.** Your Mac may show a box asking to install the command line developer tools. Press Install, wait until it has finished, then type the `git` line again (not tested on a real Mac).
+**The first time you type `git`.** Your Mac may show a box asking to install the command line developer tools. Press Install, wait until it has finished, then type the `git` line again.
 
-**If Terminal says `claude` is not found,** type `echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc`, open a new Terminal window, and check with `claude --version`.
+**If Terminal says `claude` is not found,** type the line below. It adds the folder Claude Code is installed in to the list of folders Terminal looks in for programs. Then open a new Terminal window and check with `claude --version`.
 
-**Your second brain** is at `~/Second Brain` on a Mac (a folder in your home folder), not in Documents, because macOS can refuse a program that starts by itself access to Documents (not tested on a real Mac). If a page says "macOS refused access to" a folder, move that folder into your home folder and run `python3 install.py` again (not tested on a real Mac).
+```
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+```
 
-**Apple Silicon or Intel:** the steps are the same on both, and both were tested.
+**Your second brain** is at `~/Second Brain` on a Mac, a folder in your home folder, not in Documents, because macOS can stop a program that starts by itself from opening your Documents folder. If a page says "macOS refused access to" a folder, move that folder into your home folder and run `python3 install.py` again.
 
-The table below says how to check each of these, and what else FleetView needs.
+**"Allow Node.js to find devices on local networks?"** If macOS asks this the first time the page opens, press Allow.
+
+**Apple Silicon or Intel** (the 2 kinds of chip a Mac can have; the Apple menu, then About This Mac, shows yours): the steps are the same on both, and both were tested.
+
+**Tried only on test Macs** (Macs GitHub rents out by the minute to run scripts, not a person's own Mac): 3 of the steps above were never tried on a real Mac. They are the developer-tools box, macOS stopping a program from opening Documents, and the question about devices on local networks.
 
 | You need | How to check | How to get it |
 |---|---|---|
 | Node.js 22 or newer | Open Terminal and type `node --version`. You should see v22 or higher. Node 18 stopped getting security fixes on 2025-04-30 and Node 20 on 2026-04-30, so the installer refuses anything older. | The LTS installer (LTS means long-term support, the version that goes on getting security fixes longest) from https://nodejs.org. Then open a new Terminal window. |
 | Python 3.11 or newer | `python3 --version`. Python 3.10 gets security fixes only until 2026-10-31 and older versions get none, so the installer refuses 3.10 and older. | https://www.python.org/downloads/macos/ (see Python above). |
-| Git (the tool that copies the code from GitHub to your computer) | `git --version` | It comes with your Mac's command line developer tools (see The first `git` above). |
+| Git (the tool that copies the code from GitHub to your computer) | `git --version` | It comes with your Mac's command line developer tools (see The first time you type `git`, above). |
 | Claude Code, used at least once | Type `ls ~/.claude/projects`: it lists 1 folder per project once you have used Claude Code | You have this from the earlier sessions. If not, FleetView still installs and starts reading the folder as soon as it appears. |
 | Internet | Open any web page in your browser. If it loads, you have what FleetView needs | Needed for the install and for the first run of the 5-hour gauge (it downloads ccusage). The pages themselves need nothing from the internet. |
 
-![The checks in Terminal on a test Mac, with what a good answer looks like. The version numbers are the ones the test Mac printed on 2026-09-25.](img/mac-before-you-start.png)
+![The checks in Terminal on a test Mac (one of the Macs GitHub rents out to run a script, set up like a new Mac), with what a good answer looks like. The version numbers are the ones it printed on 2026-09-25.](img/mac-before-you-start.png)
 
 ## Install it
 
-1. Open Terminal: press Command and Space, type `Terminal`, press Enter. It opens in your home folder, which is where all 4 downloads in this set go.
+1. Open Terminal: press Command and Space together, type `Terminal`, press Return. It opens in your home folder, which is where all 4 downloads in this set go.
 2. Copy the program to your computer and start the installer, typing 1 line at a time:
 
 ```
@@ -240,15 +246,17 @@ python3 install.py
 
 3. The installer checks Python and Node.js. If Python is older than 3.11, or Node.js is missing or older than 22, it tells you how to get it and stops without changing anything.
 4. It downloads 2 small add-on code packages FleetView needs, using npm (the download tool that comes with Node.js). This needs internet and takes under a minute.
-5. It asks where your **second brain folder** is, then your **CRM folder**. (If you keep them in Obsidian, the note-taking app, these are what Obsidian calls vaults.) It looks in your home folder, then your Documents folder and suggests the likeliest folder in brackets. Press Enter to accept, type a different path, or type `-` to skip.
-6. It asks for **any other project folders**, 1 at a time. If you keep a folder where you write your posts, add it here and give it a short name such as `Content Engine`. Press Enter on an empty line to finish.
-7. It asks for the **port**: the number at the end of the page's address (3010 gives http://localhost:3010). Press Enter for 3010, unless something else on your computer already uses 3010.
+5. It asks where your **second brain folder** is, then your **CRM folder**. (If you keep them in Obsidian, the note-taking app, these are what Obsidian calls vaults.) It looks in your home folder, then your Documents folder and suggests the likeliest folder in brackets. Press Return to accept, type a different path, or type `-` to skip.
+6. It asks for **any other project folders**, 1 at a time. If you keep a folder where you write your posts, add it here and give it a short name such as `Content Engine`. Press Return on an empty line to finish.
+7. It asks for the **port**: the number at the end of the page's address (3010 gives http://localhost:3010). Press Return for 3010, unless something else on your computer already uses 3010.
 8. It asks whether to switch on the **5-hour and 7-day token panel**. Say yes unless you have no internet.
-9. It asks whether FleetView should **start by itself, with no window, each time you log in to your Mac**. No account is involved: this is your Mac's own log-in. Saying yes writes a LaunchAgent: a small file, `~/Library/LaunchAgents/com.outliers.fleetview.plist`, that tells your Mac to start FleetView each time you log in. It takes effect from your next log-in; the installer also prints the `launchctl load -w` line that would switch it on straight away, which you do not need, because the next question starts FleetView now.
+9. It asks whether FleetView should **start by itself, with no window, each time you switch on your Mac and sign in**. Saying yes writes a LaunchAgent: a small file, `~/Library/LaunchAgents/com.outliers.fleetview.plist`, that tells your Mac to start FleetView each time you sign in. It takes effect the next time you switch on your Mac and sign in; the installer also prints a `launchctl load -w` line "to start it now, without signing out and in again", which you do not need, because the next question starts FleetView now.
 10. It asks whether to **start FleetView now**, with no window. Say yes.
 11. Open **http://localhost:3010/graph.html** in your browser. (`http://localhost:3010/` takes you there too.)
 
-![What the installer prints on a test Mac when you press Enter at every question. The home folder is shown as `/Users/<you>`. (Y/n) means pressing Enter gives yes.](img/mac-install-output.png)
+![What the installer prints on a test Mac when you press Return at every question, part 1 of 2: the questions. The home folder is shown as `/Users/<you>`: your screen shows your own Mac user name there. (Y/n) means pressing Return gives yes.](img/mac-install-output.png)
+
+![Part 2 of 2, the rest of the same run: the start-up question, the LaunchAgent written, and FleetView started.](img/mac-install-output-2.png)
 
 When it has worked you see your folders as hubs with today's sessions hanging off them, like the picture at the start of this guide. If you have no Claude Code session today, the page says so; start a session and it appears within 2 seconds.
 
@@ -258,9 +266,9 @@ Running the installer again with the same answers changes nothing, and if FleetV
 
 These commands run inside the FleetView folder. In a new terminal, type `cd outliers-ws-02-fleetview-mac` first.
 
-- To stop FleetView: `python3 install.py --stop`. This finds it however it was started, including when it started by itself with the computer.
+- To stop FleetView: `python3 install.py --stop`. This finds it however it was started, including when it started by itself when you switched on your Mac and signed in.
 - To start it again: `python3 install.py --start`. This only starts it, with your saved answers. It asks no questions.
-- To stop it starting by itself when the computer starts: `python3 install.py --uninstall`. This stops FleetView and removes the LaunchAgent file it made.
+- To stop it starting by itself when you switch on your Mac and sign in: `python3 install.py --uninstall`. This stops FleetView, switches off the LaunchAgent it made and removes it.
 - To remove it completely: uninstall, then delete the folder.
 
 > **Tip:** Want to see FleetView working before your own sessions exist? In a new terminal, type `cd outliers-ws-02-fleetview-mac`, then `npm run demo`, then open http://localhost:3011/graph.html. It draws 8 made-up sessions in 4 folders (1 of them the Other hub) on port 3011, so it never clashes with your own copy on 3010. Press Ctrl+C to stop it.
@@ -289,35 +297,44 @@ These commands run inside the FleetView folder. In a new terminal, type `cd outl
 
 **The safe way.** Try every change on a copy of FleetView first, so the FleetView you use every day keeps running while you experiment. 5 steps:
 
-1. Make the copy. In Finder, open your home folder, click the `outliers-ws-02-fleetview-mac` folder, choose File, then Duplicate, and rename the copy `fleetview-test`.
-2. Give the copy its own port. In `fleetview-test`, open `config.json` in a text editor such as TextEdit, change `"port": 3010` to `"port": 3012` and save. Never use 3001, 3020 or 4040: the other 3 pieces in this set use them.
-3. In `fleetview-test`, delete the file `fleetview.pid` if it is there. It is the record of your everyday FleetView, copied across with the folder. (If you forget, the installer sees that the record belongs to another folder and leaves your everyday FleetView alone.)
-4. Start the copy. Open a new terminal (it opens in your home folder), type `cd fleetview-test`, then `python3 install.py --start`, and open http://localhost:3012/graph.html. In that folder, `python3 install.py --stop` stops the copy only. You do not need to run `python3 install.py` on its own in the copy: it would only ask the install questions again.
+1. Make the copy and give it its own port. Open a new Terminal window (it opens in your home folder) and type these lines, 1 at a time:
+
+```
+cp -R outliers-ws-02-fleetview-mac fleetview-test
+cd fleetview-test
+rm -f fleetview.pid
+python3 install.py --yes --port 3012
+```
+
+The first line copies the whole folder to a new folder, `fleetview-test`. The third deletes `fleetview.pid`, the record of your everyday FleetView that came across with the copy. The last line writes the copy's settings file, `config.json`, with port 3012 and the same folders, and asks no questions. Never use 3001, 3020 or 4040: the other 3 pieces in this set use them.
+2. Change settings in `config.json` the same way, with the installer, rather than by hand. If you do open `config.json` in a text editor, it must stay plain text with straight quotes: TextEdit's Smart Quotes turn `"` into curly quotes, and saving as rich text adds formatting, and either leaves a file FleetView refuses to read. The installer's answers cover the port and every folder.
+3. The copy's `fleetview.pid` is already gone: the third line above deleted it. If you ever forget it, the installer sees that the record belongs to another folder and leaves your everyday FleetView alone.
+4. Start the copy, in the same Terminal window, with `python3 install.py --start`, and open http://localhost:3012/graph.html. In that folder, `python3 install.py --stop` stops the copy only.
 5. When a change works, make the same change in your everyday `outliers-ws-02-fleetview-mac` folder and restart FleetView there: in the terminal, type `cd ../outliers-ws-02-fleetview-mac`, then `python3 install.py --stop`, then `python3 install.py --start`.
 
 The copy reads the same Claude Code log files as your everyday FleetView. Both only read them, so neither gets in the other's way.
 
-FleetView has 2 sets of checks, and a change should pass both. `npm test` runs FleetView's own 60 checks; near the end, look for `pass 60` and `fail 0`. The installer's 30 checks run with pytest, a free Python testing tool, from a private Python folder: a folder in your home folder with its own copy of Python's add-ons, so the checks work whichever Python your Mac uses. Make that folder and install pytest into it once, from any folder:
+FleetView has 2 sets of checks, and a change should pass both. `npm test` runs FleetView's own 60 checks; near the end, look for `pass 60` and `fail 0`. The installer's 30 checks run with pytest, a free Python testing tool, from the private Python folder described in Before you start on a Mac. Make that folder and install pytest into it once, from any folder:
 
 ```
 python3 -m venv ~/outliers-checks
 source ~/outliers-checks/bin/activate && python -m pip install pytest
 ```
 
-Then run both sets of checks in the copy:
+The part before `&&` switches this Terminal window into the private folder, so the `python` after it is the folder's own copy. Then run both sets of checks in the copy, from the `fleetview-test` folder:
 
 ```
 npm test
 source ~/outliers-checks/bin/activate && python -m pytest -q
 ```
 
-The second should end with "27 passed, 3 skipped": the 3 skipped check the file that starts FleetView with the computer on a PC, which a Mac does not use. If a check fails and its message says a model name is in your logs with no row in `lib/prices.json`, Claude has released a model FleetView has no price for: add it to `lib/prices.json` (see Using it day to day). Any other failure means the change broke something, so put it back before you go on.
+The second should end with "27 passed, 3 skipped": the 3 skipped checks look at a file only a PC uses to start FleetView, so a Mac skips them. If a check fails and its message says a model name is in your logs with no row in `lib/prices.json`, Claude has released a model FleetView has no price for: add it to `lib/prices.json` (see Using it day to day). Any other failure means the change broke something, so put it back before you go on.
 
 Read "Every command and setting" near the end of this guide before you ask Claude for a change, because much of what you want is already a setting in `config.json`. The setting to leave alone is `host`: `127.0.0.1` means only this computer can open the page. Put your computer's network address there instead and every other computer on the same wifi can open the page and read your sessions, what you typed and your usage.
 
 Change it until it matches how you work. FleetView did not start as Ashley's: it started as somebody else's free dashboard, published with its code open to read, that showed 1 card per session and nothing more. Ashley moved it off port 3001 so it would stop clashing with agent-flow, replaced its price table after finding 2 models charged at Sonnet's cheaper rates instead of their own, and then had Claude write the graph page you are looking at from scratch, in plain code with no libraries. That same evening he had Claude add the 5-hour and 7-day usage gauges, budget alarms you set by clicking a gauge (green under 70%, amber to 90%, red above, with a browser alert when the projection passes what you set), and a second page that drew all 73 of his agents as a map.
 
-Each change below is a prompt you can paste into Claude Code, opened in your copy, the `fleetview-test` folder: in a new terminal, type `cd fleetview-test`, then `claude`. Claude reads the code and makes the change. Then run both sets of checks in the copy, as in The safe way above; every check should pass. To see the change, run `python3 install.py --stop` and then `python3 install.py --start` in the copy, and reload http://localhost:3012/graph.html. When you are happy, paste the same prompt into Claude Code opened in your everyday `outliers-ws-02-fleetview-mac` folder, run both sets of checks there, and restart it with `python3 install.py --stop`, then `python3 install.py --start`.
+Each change below is a prompt you can paste into Claude Code, opened in your copy, the `fleetview-test` folder: in a new Terminal window, type `cd fleetview-test`, then `claude`. Claude reads the code and makes the change. Then run both sets of checks in the copy, as in The safe way above; every check should pass. To see the change, run `python3 install.py --stop` and then `python3 install.py --start` in the copy, and reload http://localhost:3012/graph.html. When you are happy, paste the same prompt into Claude Code opened in your everyday `outliers-ws-02-fleetview-mac` folder, run both sets of checks there, and restart it with `python3 install.py --stop`, then `python3 install.py --start`.
 
 ![Which file each paste-in prompt below changes.](img/mac-where-to-change.png)
 
@@ -391,19 +408,19 @@ In this FleetView folder, make public/graph.html work when shown inside another 
 
 | Command | What it does |
 |---|---|
-| `python3 install.py` | Checks Node.js, downloads 2 code packages, asks for your folders, writes the settings file `config.json`, offers to make FleetView start by itself, with no window, when the computer starts, then starts FleetView |
+| `python3 install.py` | Checks Node.js, downloads 2 code packages, asks for your folders, writes the settings file `config.json`, offers to make FleetView start by itself, with no window, when you switch on your Mac and sign in, then starts FleetView |
 | `python3 install.py --start` | Starts FleetView in the background with your saved answers. No questions. Says so if it is already running |
 | `python3 install.py --stop` | Stops FleetView, however it was started. It checks it is really FleetView first, so it never ends another program |
-| `python3 install.py --uninstall` | Stops FleetView and removes the LaunchAgent file it made, so it no longer starts by itself when the computer starts. Leaves your settings and this folder |
-| `python3 install.py --yes` | Installs with no questions, using the options below (the words starting with `--`) and the defaults it finds. It does not start FleetView or make it start with the computer unless you add `--start` and `--launcher` |
+| `python3 install.py --uninstall` | Stops FleetView, switches off the LaunchAgent it made and removes it, so it no longer starts by itself when you switch on your Mac and sign in. Leaves your settings and this folder |
+| `python3 install.py --yes` | Installs with no questions, using the options below (the words starting with `--`) and the defaults it finds. It does not start FleetView, or write the LaunchAgent that starts it when you switch on your Mac and sign in, unless you add `--start` (start it now) and `--launcher` (write the LaunchAgent) |
 | `--second-brain PATH`, `--crm PATH`, `--folder "NAME=PATH"` | Give your folders on the command line (`--folder` can be repeated) |
 | `--port 3010`, `--projects-dir PATH`, `--no-ccusage` | Choose the port, a different Claude Code log folder, or switch the token panel off |
-| `--launcher` / `--no-launcher`, `--no-start` | Make FleetView start by itself when the computer starts, or not; do not start FleetView now |
+| `--launcher` / `--no-launcher`, `--no-start` | Write the LaunchAgent that starts FleetView by itself when you switch on your Mac and sign in, or do not; do not start FleetView now |
 | `node watcher.js` or `npm start` | Start FleetView in this terminal, showing any error it hits. Ctrl+C stops it |
 | `npm run demo` | Made-up sessions on port 3011 (see the tip in Install it) |
-| `node tools/make-demo.js <folder> --sessions 30` | Writes a made-up busy day of 30 sessions into a folder you name, to see what a full screen looks like |
+| `node tools/make-demo.js ~/fleetview-busy-day --sessions 30` | Writes a made-up busy day of 30 sessions into the folder you name (here `fleetview-busy-day` in your home folder), to see what a full screen looks like |
 | `npm test` | Runs FleetView's own 60 checks against made-up sessions and prints a line per check saying whether it passed |
-| `source ~/outliers-checks/bin/activate && python -m pytest -q` | Runs the installer's own 30 checks in a temporary folder, using pytest from your private Python folder (see Fit it to your own AI system). On a Mac 27 pass and 3 are skipped. 90 checks in total with `npm test` |
+| `source ~/outliers-checks/bin/activate && python -m pytest -q` | Runs the installer's own 30 checks in a temporary folder, using pytest from your private Python folder (see Fit it to your own AI system). 27 pass and 3 are skipped. 90 checks in total with `npm test` |
 
 ### Settings in `config.json`
 
@@ -439,16 +456,16 @@ After any change, restart FleetView: `python3 install.py --stop`, then `python3 
 
 | What you see | Why | The fix |
 |---|---|---|
-| A red **FleetView stopped** banner | The FleetView program is no longer running, so the page is not getting updates. On Ashley's computer on 2026-09-22 FleetView had stopped starting by itself when the computer started; the reason was never recorded. | Run `python3 install.py --start` in the FleetView folder. The page picks up by itself. If it will not start, read the end of `fleetview.log`, or run `node watcher.js` to see the error. |
+| A red **FleetView stopped** banner | The FleetView program is no longer running, so the page is not getting updates. On Ashley's PC on 2026-09-22 FleetView had stopped starting by itself; the reason was never recorded. | The banner names the line to type: `python3 install.py --start`, in the FleetView folder. The page picks up by itself. If it will not start, read the end of `fleetview.log`, or run `node watcher.js` to see the error. |
 | "Port 3010 is already in use" | Another program is using that port. On 2026-06-12 another tool, agent-flow (piece 1 of 4), was already on 3001, which is why FleetView moved to 3010. | Open http://localhost:3010/graph.html; if FleetView is there, it is already running. If not, run `python3 install.py` again and choose another port. |
-| FleetView is set to start by itself, but the page does not open after you restart the computer | The LaunchAgent file names the exact folder Node.js was in when you installed FleetView. If you reinstalled Node.js somewhere else, the file still names the old folder. | Run `python3 install.py` again and press Enter at each question; it writes the LaunchAgent file again. |
+| FleetView is set to start by itself, but the page does not open after you switch on your Mac and sign in | The LaunchAgent file names the exact folder Node.js was in when you installed FleetView. If you reinstalled Node.js somewhere else, the file still names the old folder. | Run `python3 install.py` again and press Return at each question; it writes the LaunchAgent file again. |
 | Terminal says "command not found" after you typed a Python command | A Mac has no Python command without the 3 on the end. | Type `python3`, as every command in this guide does. |
 | The installer says Node.js is too old | FleetView needs Node.js 22 or newer. | Install the LTS version from https://nodejs.org, open a new Terminal window, run `python3 install.py` again. |
 | The installer says Python is too old | FleetView needs Python 3.11 or newer. | Install it from https://www.python.org/downloads/macos/ (see Before you start on a Mac), open a new Terminal window, run `python3 install.py` again. |
 | Nothing is amber, but you know a session is waiting | Amber means Claude's last message asked you something. A session that stopped on a statement ("Done, saved.") is blue-grey and reads "answered 12 min ago". A question older than `waiting_hours` (1 hour) has also stopped counting. | Nothing to fix: open the session from its folder column. To keep older questions counting, raise `waiting_hours` in `config.json`. |
 | A session sits on "may need approval" for a long time | Claude asked to run a tool and nothing has come back. Either Claude Code is asking your permission in that terminal, or the command really is that long. | Look at that terminal and answer the permission question, or leave it: the violet circle is not counted in "need you". |
-| **A wide amber banner: "Your settings file could not be read"** | `config.json` is damaged. Some text editors add an invisible mark at the start of the file when they save it; a comma after the last item, a `//` comment, or a half-saved file do the same. FleetView keeps the port it last ran on, so the page you already have open still works, but none of your folder names are in use until you fix the file. | The banner names the fault, and the line number when there is one. Fix it, or run `python3 install.py` to write the file again. Your file is never changed for you. |
-| **FleetView will not start, and says "FleetView was NOT started"** | `config.json` is damaged and FleetView has no record of the port it last ran on, so it will not guess one. All 4 ways of starting it refuse the same way: `python3 install.py --start`, `npm start`, `node watcher.js` and the LaunchAgent that starts it when you log in. Your settings are never quietly thrown away. | Read the 4 lines it prints: they name the fault and the line it is on. Fix that line, or run `python3 install.py` to write the file again. When it was started by that LaunchAgent, those 4 lines are at the end of `fleetview.log` in the FleetView folder. |
+| **A wide amber banner: "Your settings file could not be read"** | `config.json` is damaged. Some text editors add an invisible mark at the start of the file when they save it, and TextEdit's Smart Quotes turn straight quotes into curly ones; a comma after the last item, a `//` comment, or a half-saved file do the same. FleetView keeps the port it last ran on, so the page you already have open still works, but none of your folder names are in use until you fix the file. | The banner names the fault, and the line number when there is one. Fix it, or run `python3 install.py` to write the file again. Your file is never changed for you. |
+| **FleetView will not start, and says "FleetView was NOT started"** | `config.json` is damaged and FleetView has no record of the port it last ran on, so it will not guess one. All 4 ways of starting it refuse the same way: `python3 install.py --start`, `npm start`, `node watcher.js` and the LaunchAgent that starts it when you switch on your Mac and sign in. Your settings are never quietly thrown away. | Read the 4 lines it prints: they name the fault and the line it is on. Fix that line, or run `python3 install.py` to write the file again. When it was started by that LaunchAgent, those 4 lines are at the end of `fleetview.log` in the FleetView folder. |
 | A session shows "no price" | Its model has no row in `lib/prices.json`. Ashley's June copy had no Opus 5 row and silently used Sonnet 4.6 rates, which made every cost wrong. | Add the model's row from https://platform.claude.com/docs/en/about-claude/pricing and restart. |
 | A red **!** beside a circle | That session's context window is over 85% full. | Start a fresh session for the next task, or ask this one to summarise and carry on. |
 | A ring sits at 100% on a long session | The session has a 1,000,000-token window, but FleetView has not yet seen either sign of it: a model name ending in `[1m]`, or a single turn over 200,000 tokens. Ashley's copy always assumed 200,000. | FleetView switches to a 1,000,000-token window when the model name ends in `[1m]` or a single turn uses more than 200,000 tokens. The side panel says which of those 2 reasons it went on. Until then, a ring on a session with the 1,000,000-token window reads too full. |

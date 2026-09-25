@@ -170,6 +170,8 @@ app.get('/api/meta', (req, res) => {
     logsFolderFound: fs.existsSync(CFG.projectsDir),
     logsFolder: CFG.hidePaths ? '(hidden)' : CFG.projectsDir,
     pid: process.pid, port: CFG.port, folderId: FOLDER_ID,
+    // The command a member types to run Python, for the stopped banner: python3 on a Mac.
+    python: PY,
   });
 });
 

@@ -258,6 +258,9 @@ function setStoppedWords(on){
     nc.title = 'FleetView stopped. This is how it stood at ' + when + '.';
   }
 }
+// The Python word the server named (python3 on a Mac). A page opened while FleetView was already
+// stopped never heard it, so it falls back to what this browser says the computer is.
+function pyWord(){ return meta.python || (/Mac/.test(navigator.platform) ? 'python3' : 'python'); }
 function setStopped(on){
   if (on === stopped) { setStoppedWords(on); return; }
   stopped = on;
@@ -265,7 +268,7 @@ function setStopped(on){
   el.style.display = on ? 'block' : 'none';
   el.innerHTML = on ? '<b>FleetView stopped.</b> This page is not getting updates any more' +
     (lastOkAt ? ' (last update ' + new Date(lastOkAt).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}) + ')' : '') +
-    '. What you see may be out of date. Start it again with <code>python install.py --start</code> in the FleetView folder; this page carries on by itself.' : '';
+    '. What you see may be out of date. Start it again with <code>' + esc(pyWord()) + ' install.py --start</code> in the FleetView folder; this page carries on by itself.' : '';
   document.getElementById('live').style.background = on ? C.red : C.thinking;
   setStoppedWords(on);
   // The strip's ages are drawn from nowRef(). Drawing it again here is what

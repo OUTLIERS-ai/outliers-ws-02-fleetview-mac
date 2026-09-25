@@ -207,7 +207,7 @@
           ' Until it is fixed none of your folder names are in use. FleetView kept port ' + (cfg.port || '') +
           ', the port it last ran on.') : null,
         e('div', { className: 'note' }, '$ = what these tokens would cost if you paid per token, not money taken from your subscription. Same sessions and totals as the graph page. The sessions that asked you something come first, newest first.'),
-        stopped ? e('div', { className: 'stopped' }, e('b', null, 'FleetView stopped. '), 'This page is not getting updates any more' + (lastOk ? ' (last update ' + new Date(lastOk).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }) + ')' : '') + '. Start it again with ', e('code', null, 'python install.py --start'), '; this page carries on by itself.') : null,
+        stopped ? e('div', { className: 'stopped' }, e('b', null, 'FleetView stopped. '), 'This page is not getting updates any more' + (lastOk ? ' (last update ' + new Date(lastOk).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }) + ')' : '') + '. Start it again with ', e('code', null, ((meta && meta.python) || (/Mac/.test(navigator.platform) ? 'python3' : 'python')) + ' install.py --start'), '; this page carries on by itself.') : null,
         !data ? null : sessions.length === 0
           ? e('div', { className: 'empty' }, 'No Claude Code sessions today yet. Start one in any folder and it appears here within 2 seconds.')
           : e('div', { className: 'grid' }, sessions.map(s => e('div', { key: s.sessionId, className: stopped ? 'stale' : '' }, e(SessionCard, { s, st: shown(s, done) }))))

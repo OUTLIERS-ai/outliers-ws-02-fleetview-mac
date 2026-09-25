@@ -48,6 +48,17 @@ MAC_LABEL = "com.outliers.fleetview"
 # The command a member types to run Python: a Mac has python3 and no plain python.
 PY = "python3" if sys.platform == "darwin" else "python"
 
+# When the start-up file runs, in the words each system's member reads. On a Mac "log in" alone
+# reads as needing an account (Ashley, 2026-09-24), so the Mac says "switch on your Mac and sign
+# in". The other systems keep exactly the words this installer printed before (wave 6, 2026-09-25).
+_MAC = sys.platform == "darwin"
+WHEN_STARTS = "when you switch on your Mac and sign in" if _MAC else "when the computer starts"
+EACH_TIME = ("each time you switch on your Mac and sign in" if _MAC
+             else "each time you switch on this computer and sign in")
+WITH_COMPUTER = "when you switch on your Mac and sign in" if _MAC else "with the computer"
+# The key a member presses to accept a suggestion: labelled Return on a Mac.
+KEY = "Return" if _MAC else "Enter"
+
 
 def say(msg=""):
     print(msg, flush=True)
@@ -190,6 +201,10 @@ def config_problem(raw):
     if raw == b"":
         return {"line": 1, "column": 1, "message": "config.json is empty."}
     if raw[:3] == b"\xef\xbb\xbf":
+        if sys.platform == "darwin":   # a Mac has no Notepad or PowerShell (as lib/config.js says it)
+            return {"line": 1, "column": 1,
+                    "message": "config.json starts with an invisible byte-order mark, which some editors add "
+                               "when they save a file. Save it again as UTF-8 without that mark."}
         return {"line": 1, "column": 1,
                 "message": "config.json starts with an invisible byte-order mark, which Notepad and "
                            "PowerShell add when they save a file. Save it again as UTF-8 without that mark."}
@@ -357,7 +372,7 @@ def install_launcher(node):
     path = launcher_path()
     text = launcher_text(node)
     if not path or text is None:
-        say("  This system has no way for the installer to start FleetView with the computer.")
+        say("  This system has no way for the installer to start FleetView %s." % WITH_COMPUTER)
         say("  Start it yourself with:  node \"%s\"" % (HERE / "watcher.js"))
         return "skipped"
     if path.exists():
@@ -368,15 +383,15 @@ def install_launcher(node):
             say("  %s already exists and was not made by this installer. Leaving it alone." % path)
             return "skipped"
         if points_elsewhere(old):
-            say("  %s already starts the FleetView in %s with the computer." % (path.name, launcher_folder(old)))
-            say("  Left alone, so that FleetView still starts by itself. Only 1 FleetView can start with the computer.")
+            say("  %s already starts the FleetView in %s %s." % (path.name, launcher_folder(old), WITH_COMPUTER))
+            say("  Left alone, so that FleetView still starts by itself. Only 1 FleetView can start %s." % WITH_COMPUTER)
             return "elsewhere"
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_bytes(text.encode(launcher_encoding()))  # bytes: keep the exact line endings
     os.replace(tmp, path)
     if sys.platform == "darwin":
-        say("  To start it now, without logging out of your Mac and back in, run:  launchctl load -w \"%s\"" % path)
+        say("  To start it now, without signing out and in again, run:  launchctl load -w \"%s\"" % path)
     return "written"
 
 
@@ -580,13 +595,20 @@ def uninstall():
             say("  %s starts the FleetView in %s, not this folder, so it was left alone." % (path.name, launcher_folder(text)))
         elif LAUNCHER_MARK in text:
             if sys.platform == "darwin":
-                say("  First run:  launchctl unload -w \"%s\"" % path)
+                # Switch the job off first, while its file still exists: printing a launchctl line and
+                # then deleting the file it names left a line nobody could run (wave 6, 2026-09-25).
+                r = subprocess.run(["launchctl", "unload", "-w", str(path)], capture_output=True, text=True,
+                                   creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+                if r.returncode == 0:
+                    say("  Switched off the LaunchAgent that started FleetView when you switched on your Mac and signed in.")
+                else:
+                    say("  The LaunchAgent was not loaded, so there was nothing to switch off.")
             path.unlink()
-            say("  Removed the file that started FleetView with the computer: %s" % path)
+            say("  Removed the file that started FleetView %s: %s" % (WITH_COMPUTER, path))
         else:
             say("  %s was not made by this installer; left alone." % path)
     else:
-        say("  FleetView was not set to start with the computer. Nothing to remove.")
+        say("  FleetView was not set to start %s. Nothing to remove." % WITH_COMPUTER)
     say("  If you started FleetView by hand with node watcher.js in a terminal you can see, close that terminal.")
     say("  Your config.json and this folder are left as they are. Delete the folder yourself if you want it gone.")
     return 0
@@ -595,7 +617,7 @@ def uninstall():
 # ---------- main ----------
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Install FleetView.")
-    ap.add_argument("--uninstall", action="store_true", help="stop FleetView and remove the file that starts it by itself when the computer starts")
+    ap.add_argument("--uninstall", action="store_true", help="stop FleetView and remove the file that starts it by itself %s" % WHEN_STARTS)
     ap.add_argument("--stop", action="store_true", help="stop a FleetView this installer started")
     ap.add_argument("--yes", action="store_true", help="no questions; use the flags and the defaults found")
     ap.add_argument("--second-brain", help="path to your second brain vault")
@@ -604,8 +626,8 @@ def main(argv=None):
     ap.add_argument("--port", type=int, help="web page port (default 3010)")
     ap.add_argument("--projects-dir", help="where Claude Code keeps its logs (default ~/.claude/projects)")
     ap.add_argument("--no-ccusage", action="store_true", help="switch off the 5-hour and 7-day token panel")
-    ap.add_argument("--launcher", dest="launcher", action="store_true", default=None, help="make FleetView start by itself, with no window, each time you switch on this computer and sign in")
-    ap.add_argument("--no-launcher", dest="launcher", action="store_false", help="do not make FleetView start by itself when the computer starts")
+    ap.add_argument("--launcher", dest="launcher", action="store_true", default=None, help="make FleetView start by itself, with no window, %s" % EACH_TIME)
+    ap.add_argument("--no-launcher", dest="launcher", action="store_false", help="do not make FleetView start by itself %s" % WHEN_STARTS)
     ap.add_argument("--start", dest="start", action="store_true", default=None,
                     help="on its own: only start FleetView, no questions. With other flags: start it after installing")
     ap.add_argument("--no-start", dest="start", action="store_false", help="do not start it now")
@@ -670,7 +692,7 @@ def main(argv=None):
 
     say("")
     say("  FleetView groups your sessions by the folder they ran in. Tell it your folders.")
-    say("  Press Enter to accept the suggestion in brackets, or type '-' to skip one.")
+    say("  Press %s to accept the suggestion in brackets, or type '-' to skip one." % KEY)
     sb = ask("Where is your second brain vault?", sb_default, interactive)
     crm = ask("Where is your CRM vault?", crm_default, interactive)
 
@@ -693,9 +715,9 @@ def main(argv=None):
         if extra:
             say("  Keeping your other folders from last time: " + ", ".join(n for n, _ in extra))
         say("")
-        say("  Any other project folders? For example the folder where you write your posts. One at a time; Enter on its own to finish.")
+        say("  Any other project folders? For example the folder where you write your posts. One at a time; %s on its own to finish." % KEY)
         while True:
-            p = ask("Folder path (Enter to finish):", None, True)
+            p = ask("Folder path (%s to finish):" % KEY, None, True)
             if not p:
                 break
             n = ask("Short name for it:", Path(p).name, True)
@@ -747,19 +769,19 @@ def main(argv=None):
     # 5
     want = a.launcher
     if want is None:
-        want = ask_yes("Start FleetView by itself, with no window, each time you switch on this computer and sign in?",
+        want = ask_yes("Start FleetView by itself, with no window, %s?" % EACH_TIME,
                        True, interactive) if interactive else False
     if want:
         res = install_launcher(node)
         p = launcher_path()
         if res == "elsewhere":
-            say("  Starts with the computer: the FleetView in the other folder, as before.")
+            say("  Starts %s: the FleetView in the other folder, as before." % WITH_COMPUTER)
         elif res == "skipped" or p is None:
-            say("  Starts with the computer: not set up.")
+            say("  Starts %s: not set up." % WITH_COMPUTER)
         else:
             where = "your Startup folder" if sys.platform == "win32" else "your LaunchAgents folder (Mac)"
             verb = "was written into" if res == "written" else "is already in"
-            say("  Starts with the computer: a small file called %s %s %s (%s)." % (p.name, verb, where, p))
+            say("  Starts %s: a small file called %s %s %s (%s)." % (WITH_COMPUTER, p.name, verb, where, p))
 
     started = False
     already = False

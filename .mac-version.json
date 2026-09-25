@@ -1,10 +1,10 @@
 {
   "main": "outliers-ws-02-fleetview",
-  "main_commit": "ce6e27855b540f3a095a9c27b1912d4df0fcc451",
+  "main_commit": "4d635b70ba7fe9984b091c65508c4cc3ac3a50b2",
   "mac": "outliers-ws-02-fleetview-mac",
   "macgen_commit": "9c2578fc+uncommitted",
   "date": "2026-09-25",
-  "fingerprint": "19fa76a21682ff1bfec4b4d55f439ff18d2d369d17199e5c9ff30206d0f1146d",
+  "fingerprint": "fd272e3bb0d35731a206eec4785b78746fabe12580761ab110f35d8373846401",
   "left_out_of_fingerprint": [
     ".mac-version.json",
     "guide/FleetView Every Agent Session, Live, on a Single Screen (Mac).pdf"
@@ -28,7 +28,7 @@
     {
       "path": "README.md",
       "category": "changed",
-      "sha256": "42dfcf64a74421f8dc75b3581d5ae0ee709f1f9ee77c5ad59d829f34eba4a081"
+      "sha256": "11dcb816152cdca580ba92f0ede9ea1d3b429ecf7a37f32516dada4befa4fa50"
     },
     {
       "path": "UPSTREAM-LICENSE",
@@ -52,7 +52,7 @@
     {
       "path": "guide/GUIDE.md",
       "category": "changed",
-      "sha256": "558938a2d56dd7088facdf14441caf4580d5deed996dec5d1aa8b98fed1b9a64"
+      "sha256": "e9b77f5b544d76f6e33f9e6ec5f395bf60adbf7f2999ca090d12edf328d41fbb"
     },
     {
       "path": "guide/img/before-you-start.png",
@@ -120,9 +120,14 @@
       "sha256": "acc548b7457763e761e60494d14dcaf66678488ceabfe08e87205fdfd5101de7"
     },
     {
+      "path": "guide/img/mac-install-output-2.png",
+      "category": "changed",
+      "sha256": "f3f43c7484212cd318865368a966e1db54220bf85d26e21dfabf4c290865e88e"
+    },
+    {
       "path": "guide/img/mac-install-output.png",
       "category": "changed",
-      "sha256": "1d413bb980f6042fdfeb1b9e92e9735c96da3caebc30aa20f3ec90b6c1f9f432"
+      "sha256": "21e2c16e085b7bf2c06c3def1d025cf742e45bd8749bbf100c6ac1bcdc966685"
     },
     {
       "path": "guide/img/mac-what-it-reads.png",
@@ -197,7 +202,7 @@
     {
       "path": "install.py",
       "category": "same",
-      "sha256": "34e0940e77ef244a8c098efc1b61caedd564446c024f27d6d2f42ec7a02c392b"
+      "sha256": "638959acce92c4770ec7df5d306bb626a1446b5d9d107045b89b1320a66e19c5"
     },
     {
       "path": "lib/config.js",
@@ -242,12 +247,12 @@
     {
       "path": "public/cards.html",
       "category": "same",
-      "sha256": "d72b2fa499059f2720304b5b9b540b2c42fea180a8c64ead630c26947b1dc19e"
+      "sha256": "cc504e0c8115d614a27bf31e13593996fba753eee2b65cd49cd9c172af6cc51e"
     },
     {
       "path": "public/graph.html",
       "category": "same",
-      "sha256": "d679e076cf8b3a2e732501d7bbb2d6afc4c4ecded2f66f951505504529cc9679"
+      "sha256": "f0cada9fe9e50b03414c2af0c1cc80857cd26aad25ab55ca344dd8387d8bebe9"
     },
     {
       "path": "public/vendor/LICENSE-react.txt",
@@ -295,6 +300,11 @@
       "sha256": "5704ddd4aeae197a144eb49132b5d658bf2f20e02bcd3cbfd87d10d2ac416bfb"
     },
     {
+      "path": "tests/mac/mac_config_bom_words.py",
+      "category": "same",
+      "sha256": "09e8f36c5ef79b60b6ff8034b937874c78a5264725bda82022a9eac753073ff4"
+    },
+    {
       "path": "tests/mac/mac_missed_folder_is_read.js",
       "category": "same",
       "sha256": "29654147503516cfe5fa14ecd8cf27881387157f34db829a77965fedea5ab4fa"
@@ -320,9 +330,24 @@
       "sha256": "42edfef5c7acf197ce1e25669a528ec98f318efd9b5b05e7065cd61f5119feb9"
     },
     {
+      "path": "tests/mac/mac_signin_wording.py",
+      "category": "same",
+      "sha256": "1b3c64a3a693e9145e3d4f4699debc761b22a9ba59c53ac39572ff0165c13a7f"
+    },
+    {
+      "path": "tests/mac/mac_stopped_banner_python.js",
+      "category": "same",
+      "sha256": "6bca38eb1573e4dc9340764414ac3415c0c9d301e1289e410fd5c805b1938b3a"
+    },
+    {
       "path": "tests/mac/mac_token_panel.js",
       "category": "same",
       "sha256": "ef9135473c796987b14d53de40680547fd023d0d756b0bbd3b0253461030328e"
+    },
+    {
+      "path": "tests/mac/mac_uninstall_unloads.py",
+      "category": "same",
+      "sha256": "a8cf39c27bcd460ccc3f1cb33b4d95c7ae3f32b9f67a32d24cff057939524be7"
     },
     {
       "path": "tests/mac/mac_vault_lookup.py",
@@ -382,7 +407,7 @@
     {
       "path": "watcher.js",
       "category": "same",
-      "sha256": "907e1612e96d76a8fd55c81d391fd46220bbc9d961ecd6b973c1b16b6890218d"
+      "sha256": "9c42e3c98da4ebd6227c8f6de213b759fce0965a356db5b999f2a6f2f442ecbd"
     }
   ]
 }
