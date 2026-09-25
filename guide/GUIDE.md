@@ -32,7 +32,7 @@ This is piece 2 of 4 in the agent workspace. Install them in order: 1 agent-flow
 | Port | The number after the colon in an address such as http://localhost:3010. It picks out which program on your computer answers. In this set of 4: agent-flow 3001, FleetView 3010, ProjectForge 3020, Jeeves 4040. |
 | `~` | Short for your home folder. `~/.claude/projects` is the folder `.claude/projects` inside it. |
 | Node.js and npm | Node.js is free software that runs FleetView's server. npm is the tool that comes with it and downloads code packages. |
-| GitHub, repo, stars | GitHub is the website where the code is kept. A repo is a project's folder of code, kept on GitHub; `git clone` copies it to your computer. Stars are GitHub's count of people who bookmarked a project. |
+| GitHub, repo, stars | GitHub is the website where the code is kept. A repo is a project's folder of code, kept on GitHub; Git's clone command copies it to your computer (the full line is under Install it). Stars are GitHub's count of people who bookmarked a project. |
 | Git branch | The named version of the code a session is working on. It only shows for folders that use Git. |
 
 ![FleetView with 9 made-up sessions in 4 folders: 2 asked you something (amber), 1 is waiting on a tool (violet), 2 are working (green), the rest have answered or are idle (blue-grey). The key along the bottom edge explains every mark.](img/fleetview-graph.png)
@@ -221,7 +221,7 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 
 **Apple Silicon or Intel** (the 2 kinds of chip a Mac can have; the Apple menu, then About This Mac, shows yours): the steps are the same on both, and both were tested.
 
-**Tried only on test Macs** (Macs GitHub rents out by the minute to run scripts, not a person's own Mac): 3 of the steps above were never tried on a real Mac. They are the developer-tools box, macOS stopping a program from opening Documents, and the question about devices on local networks.
+**Tried only on test Macs.** Every step above was tried only on test Macs (Macs GitHub rents out by the minute to run scripts, not a person's own Mac), never on a real Mac. 3 of them cannot happen on a test Mac, so they were not tried at all: the developer-tools box, macOS stopping a program from opening Documents, and the question about devices on local networks.
 
 | You need | How to check | How to get it |
 |---|---|---|
@@ -310,18 +310,14 @@ The first line copies the whole folder to a new folder, `fleetview-test`. The th
 2. Change settings in `config.json` the same way, with the installer, rather than by hand. If you do open `config.json` in a text editor, it must stay plain text with straight quotes: TextEdit's Smart Quotes turn `"` into curly quotes, and saving as rich text adds formatting, and either leaves a file FleetView refuses to read. The installer's answers cover the port and every folder.
 3. The copy's `fleetview.pid` is already gone: the third line above deleted it. If you ever forget it, the installer sees that the record belongs to another folder and leaves your everyday FleetView alone.
 4. Start the copy, in the same Terminal window, with `python3 install.py --start`, and open http://localhost:3012/graph.html. In that folder, `python3 install.py --stop` stops the copy only.
-5. When a change works, make the same change in your everyday `outliers-ws-02-fleetview-mac` folder and restart FleetView there: in the terminal, type `cd ../outliers-ws-02-fleetview-mac`, then `python3 install.py --stop`, then `python3 install.py --start`.
-
-The copy reads the same Claude Code log files as your everyday FleetView. Both only read them, so neither gets in the other's way.
-
-FleetView has 2 sets of checks, and a change should pass both. `npm test` runs FleetView's own 60 checks; near the end, look for `pass 60` and `fail 0`. The installer's 30 checks run with pytest, a free Python testing tool, from the private Python folder described in Before you start on a Mac. Make that folder and install pytest into it once, from any folder:
+5. Before you copy a change back, check it in the copy, still in the `fleetview-test` folder. FleetView has 2 sets of checks, and a change should pass both. `npm test` runs FleetView's own 60 checks; near the end, look for `pass 60` and `fail 0`. The installer's 30 checks run with pytest, a free Python testing tool, from the private Python folder described in Before you start on a Mac. Make that folder and install pytest into it once, from any folder:
 
 ```
 python3 -m venv ~/outliers-checks
 source ~/outliers-checks/bin/activate && python -m pip install pytest
 ```
 
-The part before `&&` switches this Terminal window into the private folder, so the `python` after it is the folder's own copy. Then run both sets of checks in the copy, from the `fleetview-test` folder:
+The part before `&&` switches this Terminal window into the private folder, so the `python` after it is the folder's own copy. Then run both sets of checks, still in `fleetview-test`:
 
 ```
 npm test
@@ -329,6 +325,11 @@ source ~/outliers-checks/bin/activate && python -m pytest -q
 ```
 
 The second should end with "27 passed, 3 skipped": the 3 skipped checks look at a file only a PC uses to start FleetView, so a Mac skips them. If a check fails and its message says a model name is in your logs with no row in `lib/prices.json`, Claude has released a model FleetView has no price for: add it to `lib/prices.json` (see Using it day to day). Any other failure means the change broke something, so put it back before you go on.
+
+When the checks pass, make the same change in your everyday `outliers-ws-02-fleetview-mac` folder and restart FleetView there: in the terminal, type `cd ../outliers-ws-02-fleetview-mac`, then `python3 install.py --stop`, then `python3 install.py --start`.
+
+The copy reads the same Claude Code log files as your everyday FleetView. Both only read them, so neither gets in the other's way.
+
 
 Read "Every command and setting" near the end of this guide before you ask Claude for a change, because much of what you want is already a setting in `config.json`. The setting to leave alone is `host`: `127.0.0.1` means only this computer can open the page. Put your computer's network address there instead and every other computer on the same wifi can open the page and read your sessions, what you typed and your usage.
 

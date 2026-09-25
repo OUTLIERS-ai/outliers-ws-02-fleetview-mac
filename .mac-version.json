@@ -4,7 +4,7 @@
   "mac": "outliers-ws-02-fleetview-mac",
   "macgen_commit": "9c2578fc+uncommitted",
   "date": "2026-09-25",
-  "fingerprint": "36886b1ddfb3ac2c42fb60af955f2cc1a326decd5e6c9c3f4559a33fb86e35f1",
+  "fingerprint": "1f5995585893a02557b0390baac79b772220cd00dea0e554659c19eb15a02578",
   "left_out_of_fingerprint": [
     ".mac-version.json",
     "guide/FleetView Every Agent Session, Live, on a Single Screen (Mac).pdf"
@@ -52,7 +52,7 @@
     {
       "path": "guide/GUIDE.md",
       "category": "changed",
-      "sha256": "e9b77f5b544d76f6e33f9e6ec5f395bf60adbf7f2999ca090d12edf328d41fbb"
+      "sha256": "2c948ce6f3f5cdd6ac2077b621d3729778a3aac9c0a1413c72180a56326815f4"
     },
     {
       "path": "guide/img/before-you-start.png",
