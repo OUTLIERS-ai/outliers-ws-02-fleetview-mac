@@ -1,0 +1,388 @@
+{
+  "main": "outliers-ws-02-fleetview",
+  "main_commit": "ce6e27855b540f3a095a9c27b1912d4df0fcc451",
+  "mac": "outliers-ws-02-fleetview-mac",
+  "macgen_commit": "9c2578fc+uncommitted",
+  "date": "2026-09-25",
+  "fingerprint": "19fa76a21682ff1bfec4b4d55f439ff18d2d369d17199e5c9ff30206d0f1146d",
+  "left_out_of_fingerprint": [
+    ".mac-version.json",
+    "guide/FleetView Every Agent Session, Live, on a Single Screen (Mac).pdf"
+  ],
+  "files": [
+    {
+      "path": ".gitattributes",
+      "category": "same",
+      "sha256": "256447908215572a04a5a0fba30d83183f8baa9c62ae5c1f92a0c546e223c129"
+    },
+    {
+      "path": ".gitignore",
+      "category": "same",
+      "sha256": "b3f443fa69d7b20a913d02cba382b2aa6d303e22f74d9c8c25dce680bd2b92ca"
+    },
+    {
+      "path": "LICENSE",
+      "category": "same",
+      "sha256": "87c5769bb6b45a524804bec11cbf8d8eb8b6e8ebd9c9539770db4e31b9ab7691"
+    },
+    {
+      "path": "README.md",
+      "category": "changed",
+      "sha256": "42dfcf64a74421f8dc75b3581d5ae0ee709f1f9ee77c5ad59d829f34eba4a081"
+    },
+    {
+      "path": "UPSTREAM-LICENSE",
+      "category": "same",
+      "sha256": "4283fd46d22c37cfdbe0cbc64cf596e738f253782db132341da8a98a6432344a"
+    },
+    {
+      "path": "WHAT-I-STOLE.md",
+      "category": "same",
+      "sha256": "30f6e528ab4b1c36b090b4a44da95cb314c621b33ee7e0c94161a537ab82422e"
+    },
+    {
+      "path": "config.example.json",
+      "category": "same",
+      "sha256": "014b3e001402063c24c7f71ef2c9bc77fe493e0a7fb40c07991b02de00b884f0"
+    },
+    {
+      "path": "guide/FleetView Every Agent Session, Live, on a Single Screen (Mac).pdf",
+      "category": "left out of the fingerprint"
+    },
+    {
+      "path": "guide/GUIDE.md",
+      "category": "changed",
+      "sha256": "558938a2d56dd7088facdf14441caf4580d5deed996dec5d1aa8b98fed1b9a64"
+    },
+    {
+      "path": "guide/img/before-you-start.png",
+      "category": "same",
+      "sha256": "fdb8544d4d47f3ebf9d42e1c41516a8b732c378691653c6de4314d392e83cd89"
+    },
+    {
+      "path": "guide/img/config-broken.png",
+      "category": "same",
+      "sha256": "4a8bc2cee09fa727b59dc339d37a29e74d5bcbbc9fba2575a7f168b83030d4a1"
+    },
+    {
+      "path": "guide/img/config-settings.png",
+      "category": "same",
+      "sha256": "730834c99a40b333a4135b08ccc4627cd64d28777e77460d5d5dc4eed511ff26"
+    },
+    {
+      "path": "guide/img/fleetview-graph.png",
+      "category": "same",
+      "sha256": "bd38d4076ec3d9e3484416ee991e73a17ddeda09c2880638c3275c7649e385ed"
+    },
+    {
+      "path": "guide/img/fleetview-grid.png",
+      "category": "same",
+      "sha256": "d20aca95e27bd5ea22c191ae56e3450d725337f537140831f42864ad0bf7f2be"
+    },
+    {
+      "path": "guide/img/fleetview-hover.png",
+      "category": "same",
+      "sha256": "215ce73e8bcd2e15fb90bc4c9e2045dc2a6f3944e6d725d73f6aa9ade44b79e0"
+    },
+    {
+      "path": "guide/img/fleetview-panel.png",
+      "category": "same",
+      "sha256": "05742c64d8be42e1e4ceb8d871f16b26d4974b66d2048580bbd0952cdf93a575"
+    },
+    {
+      "path": "guide/img/fleetview-stopped.png",
+      "category": "same",
+      "sha256": "d7796d0d5361e528b7f425a2a877433dcee0aa879094269ba25fa780482acfcd"
+    },
+    {
+      "path": "guide/img/history-2026-06-12-5h-window.png",
+      "category": "same",
+      "sha256": "3b83c27d7b3ab1c5c4ca6da79d7154beadd4983f0d3035f9776e56a6493ff56e"
+    },
+    {
+      "path": "guide/img/history-2026-06-12-budgets.png",
+      "category": "same",
+      "sha256": "cf2657660ea37495e9b684255f79aeee8772933ac94cf2ef7b795dcc985ec646"
+    },
+    {
+      "path": "guide/img/history-2026-06-12-first-graph.png",
+      "category": "same",
+      "sha256": "f411431197b6cdb06a2db027334958991fb733691e09c19b63b55b8c941e5758"
+    },
+    {
+      "path": "guide/img/install-output.png",
+      "category": "same",
+      "sha256": "ad222b218a9f8dc1d6c95e03f281f0cdc1ae4735a9f9a4904f0b6f10162a7225"
+    },
+    {
+      "path": "guide/img/mac-before-you-start.png",
+      "category": "changed",
+      "sha256": "acc548b7457763e761e60494d14dcaf66678488ceabfe08e87205fdfd5101de7"
+    },
+    {
+      "path": "guide/img/mac-install-output.png",
+      "category": "changed",
+      "sha256": "1d413bb980f6042fdfeb1b9e92e9735c96da3caebc30aa20f3ec90b6c1f9f432"
+    },
+    {
+      "path": "guide/img/mac-what-it-reads.png",
+      "category": "changed",
+      "sha256": "037a60cc185284232e107b63236ae0625bc50893dbc7d4eef4bbcd8a6a586231"
+    },
+    {
+      "path": "guide/img/mac-whats-in-the-download.png",
+      "category": "changed",
+      "sha256": "a8ec5c5598854607363f9136adf641775c3aa3b72a3f0b07bc8382bb35e67df6"
+    },
+    {
+      "path": "guide/img/mac-where-to-change.png",
+      "category": "changed",
+      "sha256": "c68a83ba15c5beb298a4c1e5fa2c814019f2d2ab6ca86a80d23ec88ff27ad7f8"
+    },
+    {
+      "path": "guide/img/mac-why-a-single-page.png",
+      "category": "changed",
+      "sha256": "877f2935066c493a083e65d1a810af2f7f0abf441a31e99d99ac5863ef2e9fae"
+    },
+    {
+      "path": "guide/img/needs-strip.png",
+      "category": "same",
+      "sha256": "577def9e6ded63e6cc509b471b0684ff99c2134fdca047d2ca9628afbd1c9ac6"
+    },
+    {
+      "path": "guide/img/original-comms-mesh-2026-06-12.png",
+      "category": "same",
+      "sha256": "3ec69122727e50392a623b286631952daf5819368be9ad767a0bf42b9195f120"
+    },
+    {
+      "path": "guide/img/original-fleetmap-2026-06-12.png",
+      "category": "same",
+      "sha256": "16656afdd976a8b23fcae02533da9d44eea02b93eaf2cb936a9f2cb0c686e8d1"
+    },
+    {
+      "path": "guide/img/original-fleetview-2026-09-22.png",
+      "category": "same",
+      "sha256": "9cbdc2f1bfc9c44743d0545415d8725eec54301e06418a37158180c2d7ebf688"
+    },
+    {
+      "path": "guide/img/original-vault-galaxy.png",
+      "category": "same",
+      "sha256": "4f7772443c84493000ef999331f7352d526a09349747c32af271f8f89a0c1e36"
+    },
+    {
+      "path": "guide/img/thirty-sessions.png",
+      "category": "same",
+      "sha256": "1b94484fba6754dcb5c7491b60c7498278a4624864bf7bb4d182b7b1f7bdbd81"
+    },
+    {
+      "path": "guide/img/what-it-reads.png",
+      "category": "same",
+      "sha256": "f342f466bf9e54fcf3c1e96550b8539836ea919397bf1cdc68367344a800ed7e"
+    },
+    {
+      "path": "guide/img/whats-in-the-download.png",
+      "category": "same",
+      "sha256": "ea2b87e9d2b9c5d32531c2a107d8e1a2be018acdfa8fac4440392a777851d9fe"
+    },
+    {
+      "path": "guide/img/where-to-change.png",
+      "category": "same",
+      "sha256": "e2c5f0cb0e1dda04c40c2dc074047008601bf3268bcbb1f21a300cfb4a531162"
+    },
+    {
+      "path": "guide/img/why-a-single-page.png",
+      "category": "same",
+      "sha256": "3e7e68acf94a1b21c7a55f49cfb81a02f6816303f630f40c6e8291dbe411d05f"
+    },
+    {
+      "path": "install.py",
+      "category": "same",
+      "sha256": "34e0940e77ef244a8c098efc1b61caedd564446c024f27d6d2f42ec7a02c392b"
+    },
+    {
+      "path": "lib/config.js",
+      "category": "same",
+      "sha256": "31f29820e9cc2bc7620aee96dfcc75207223c210d13be2d8a364fd3e05d86fce"
+    },
+    {
+      "path": "lib/groups.js",
+      "category": "same",
+      "sha256": "d392512a01035b7bfd8c08f34b14c2bc35f84614393f373093c3c28211c9a0f0"
+    },
+    {
+      "path": "lib/prices.json",
+      "category": "same",
+      "sha256": "e0ba67bc3cdcb22ed46580ed8104fc01100c3d0d85fa99280eb0bee4d8090c58"
+    },
+    {
+      "path": "lib/pricing.js",
+      "category": "same",
+      "sha256": "dd534b24fa7c47810a5bafcb019dd989b8785bf6cbba53aea2fe9f009cd9cfc3"
+    },
+    {
+      "path": "lib/sessions.js",
+      "category": "same",
+      "sha256": "d998771e7a9b732ad6d7ea3b34cf776896af8fcaa324535bb54b24e6e81cc8b2"
+    },
+    {
+      "path": "lib/usage.js",
+      "category": "same",
+      "sha256": "b6863d5bbc4a81f9b4e3beb7f7b801f875a716e368cc116938841b0c89ebf2ac"
+    },
+    {
+      "path": "package-lock.json",
+      "category": "same",
+      "sha256": "4f1a81b974c05b1aacbb12408b27c3d4dc03f50130aca0e49dc62d613b36f22f"
+    },
+    {
+      "path": "package.json",
+      "category": "same",
+      "sha256": "824eaa823dd015d5446f1f8ceac1e0106982e8688445c482f53a7b790a2e439f"
+    },
+    {
+      "path": "public/cards.html",
+      "category": "same",
+      "sha256": "d72b2fa499059f2720304b5b9b540b2c42fea180a8c64ead630c26947b1dc19e"
+    },
+    {
+      "path": "public/graph.html",
+      "category": "same",
+      "sha256": "d679e076cf8b3a2e732501d7bbb2d6afc4c4ecded2f66f951505504529cc9679"
+    },
+    {
+      "path": "public/vendor/LICENSE-react.txt",
+      "category": "same",
+      "sha256": "52412d7bc7ce4157ea628bbaacb8829e0a9cb3c58f57f99176126bc8cf2bfc85"
+    },
+    {
+      "path": "public/vendor/README.txt",
+      "category": "same",
+      "sha256": "074ec2cebb8af9dfc68536631a15d6a62ad9ef60fe0adda4909e393cdc22dfc6"
+    },
+    {
+      "path": "public/vendor/react-dom.production.min.js",
+      "category": "same",
+      "sha256": "35f4f974f4b2bcd44da73963347f8952e341f83909e4498227d4e26b98f66f0d"
+    },
+    {
+      "path": "public/vendor/react.production.min.js",
+      "category": "same",
+      "sha256": "d949f1c3687aedadcedac85261865f29b17cd273997e7f6b2bfc53b2f9d4c4dd"
+    },
+    {
+      "path": "tests/config-refuse.test.js",
+      "category": "same",
+      "sha256": "6b31d9b6d356152d654315fecc1eaa6561cfd7e0ce657f908d4014abbdd70cc2"
+    },
+    {
+      "path": "tests/demo.test.js",
+      "category": "same",
+      "sha256": "c0f466d524d867d7f04bbf618d402322fbe1acbe5b6c2dcdd7aa87b07409bf0e"
+    },
+    {
+      "path": "tests/groups.test.js",
+      "category": "same",
+      "sha256": "3033afe2ff32cb34fb591f9128bb7b89cd366ab3758d1573fdc84407ac2ec16e"
+    },
+    {
+      "path": "tests/helpers.js",
+      "category": "same",
+      "sha256": "9c0dee85cfd61a78d7b0079fe1db8a538d1b80e3088fd3de30ccf311c5dcaa22"
+    },
+    {
+      "path": "tests/logscan.test.js",
+      "category": "same",
+      "sha256": "5704ddd4aeae197a144eb49132b5d658bf2f20e02bcd3cbfd87d10d2ac416bfb"
+    },
+    {
+      "path": "tests/mac/mac_missed_folder_is_read.js",
+      "category": "same",
+      "sha256": "29654147503516cfe5fa14ecd8cf27881387157f34db829a77965fedea5ab4fa"
+    },
+    {
+      "path": "tests/mac/mac_node_advice.py",
+      "category": "same",
+      "sha256": "f22fdce8a8f7de65984f0edf439c49676a00ea3d3a9d5d8d5c8e94fccba66330"
+    },
+    {
+      "path": "tests/mac/mac_page_answers_while_reading.js",
+      "category": "same",
+      "sha256": "4fbde8ccbab79e880689c2992e0f56e76445daa02f985433cc4e232987b06649"
+    },
+    {
+      "path": "tests/mac/mac_plist_path.py",
+      "category": "same",
+      "sha256": "60fc36f8908c4af371eb72aa7c443bfda344f54818dbeff75f88317d51a57b9a"
+    },
+    {
+      "path": "tests/mac/mac_printed_commands_python3.py",
+      "category": "same",
+      "sha256": "42edfef5c7acf197ce1e25669a528ec98f318efd9b5b05e7065cd61f5119feb9"
+    },
+    {
+      "path": "tests/mac/mac_token_panel.js",
+      "category": "same",
+      "sha256": "ef9135473c796987b14d53de40680547fd023d0d756b0bbd3b0253461030328e"
+    },
+    {
+      "path": "tests/mac/mac_vault_lookup.py",
+      "category": "same",
+      "sha256": "095f6990060138655628785d27f608f8f336828d831df9e06a6973d13c4d83f4"
+    },
+    {
+      "path": "tests/pages.test.js",
+      "category": "same",
+      "sha256": "b39756b4fda22fb89e870a755b212c8344b91a9a262cb4b902fb8ed9daa4bfd4"
+    },
+    {
+      "path": "tests/pricing.test.js",
+      "category": "same",
+      "sha256": "28fcb78c77620accf9cdec6a3fa8c184625d8d62210c079dc99a37a9b251f8c9"
+    },
+    {
+      "path": "tests/server.test.js",
+      "category": "same",
+      "sha256": "6c4c2b74588ab61863fb5034124e8c72e1e081c2d26b843a87e0524757b62894"
+    },
+    {
+      "path": "tests/server2.test.js",
+      "category": "same",
+      "sha256": "9ef9a468a342e999afa88f643183ccad016ba546fff2a80e60baf4d9378895d7"
+    },
+    {
+      "path": "tests/server3.test.js",
+      "category": "same",
+      "sha256": "12070f80c777a885d8003cec77c285f43532fe58ae1ce8fc615c92531d668ea6"
+    },
+    {
+      "path": "tests/sessions.test.js",
+      "category": "same",
+      "sha256": "65b56317cb54440a67282223ef964d340a2f585760135f44e4afd145ceb3aad4"
+    },
+    {
+      "path": "tests/status.test.js",
+      "category": "same",
+      "sha256": "41aad6e13fe93e58052e70805cd60d16a61101bb9c1f1b4fee5337d397470c67"
+    },
+    {
+      "path": "tests/test_install.py",
+      "category": "same",
+      "sha256": "f4d1e3cd096587e8c043239860fe7ccb86b6f77af9ddb2f304326a47aee07d56"
+    },
+    {
+      "path": "tests/usage.test.js",
+      "category": "same",
+      "sha256": "ef6a1dfba63e4d04129cfe141069129487744a004b5fee98b5f799e223faac14"
+    },
+    {
+      "path": "tools/make-demo.js",
+      "category": "same",
+      "sha256": "f8750a73843eeec2a33e577bd3ea57c99875ed180b29b679de3beac71fed5468"
+    },
+    {
+      "path": "watcher.js",
+      "category": "same",
+      "sha256": "907e1612e96d76a8fd55c81d391fd46220bbc9d961ecd6b973c1b16b6890218d"
+    }
+  ]
+}

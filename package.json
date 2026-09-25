@@ -1,0 +1,19 @@
+{
+  "name": "outliers-ws-02-fleetview",
+  "version": "1.0.0",
+  "description": "FleetView: one screen showing every Claude Code session on this computer, grouped by your own folders, with a token panel. Built on Stargx/claude-code-dashboard (MIT, Cold Beam Games).",
+  "main": "watcher.js",
+  "private": true,
+  "scripts": {
+    "start": "node watcher.js",
+    "demo": "node tools/make-demo.js --serve",
+    "test": "node --test"
+  },
+  "engines": { "node": ">=22" },
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "chokidar": "^5.0.0",
+    "express": "^5.2.1"
+  }
+}

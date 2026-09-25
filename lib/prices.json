@@ -1,0 +1,158 @@
+{
+  "_about": "US dollars per 1 million tokens, standard Claude API rates. Every row was read off https://platform.claude.com/docs/en/about-claude/pricing on 2026-09-22. These are what the tokens WOULD cost on the paid API. On a Claude subscription you do not pay these amounts. Add a row when a new model appears; a model with no row is shown as 'no price', never guessed. tests/logscan.test.js reads your own recent logs and fails when a model in them has no row.",
+  "checked": "2026-09-22",
+  "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+  "_aliases": "Claude Code also accepts a bare word as a model name (claude --model opus). These are what each word meant on 2026-09-22, checked by running claude --model <word> and reading back what it used.",
+  "aliases": {
+    "opus": "claude-opus-5-5",
+    "sonnet": "claude-sonnet-5",
+    "haiku": "claude-haiku-4-5"
+  },
+  "_retired": "Retired from Anthropic's own API on the dates below. The rates are still right on Amazon Bedrock and Google Cloud, so the rows stay.",
+  "retired": {
+    "claude-opus-4-1": "2026-08-05",
+    "claude-opus-4": "2026-06-15",
+    "claude-sonnet-4": "2026-06-15",
+    "claude-3-5-haiku": "2026-02-19"
+  },
+  "models": {
+    "claude-opus-5-5": {
+      "input": 4,
+      "output": 20,
+      "cacheWrite5m": 5,
+      "cacheWrite1h": 8,
+      "cacheRead": 0.2,
+      "fast": {
+        "input": 8,
+        "output": 40
+      }
+    },
+    "claude-fable-5-1": {
+      "input": 10,
+      "output": 50,
+      "cacheWrite5m": 12.5,
+      "cacheWrite1h": 20,
+      "cacheRead": 0.25
+    },
+    "claude-mythos-5-1": {
+      "input": 10,
+      "output": 50,
+      "cacheWrite5m": 12.5,
+      "cacheWrite1h": 20,
+      "cacheRead": 0.25
+    },
+    "claude-fable-5": {
+      "input": 10,
+      "output": 50,
+      "cacheWrite5m": 12.5,
+      "cacheWrite1h": 20,
+      "cacheRead": 1
+    },
+    "claude-mythos-5": {
+      "input": 10,
+      "output": 50,
+      "cacheWrite5m": 12.5,
+      "cacheWrite1h": 20,
+      "cacheRead": 1
+    },
+    "claude-opus-5": {
+      "input": 5,
+      "output": 25,
+      "cacheWrite5m": 6.25,
+      "cacheWrite1h": 10,
+      "cacheRead": 0.5,
+      "fast": {
+        "input": 10,
+        "output": 50
+      }
+    },
+    "claude-opus-4-8": {
+      "input": 5,
+      "output": 25,
+      "cacheWrite5m": 6.25,
+      "cacheWrite1h": 10,
+      "cacheRead": 0.5,
+      "fast": {
+        "input": 10,
+        "output": 50
+      }
+    },
+    "claude-opus-4-7": {
+      "input": 5,
+      "output": 25,
+      "cacheWrite5m": 6.25,
+      "cacheWrite1h": 10,
+      "cacheRead": 0.5
+    },
+    "claude-opus-4-6": {
+      "input": 5,
+      "output": 25,
+      "cacheWrite5m": 6.25,
+      "cacheWrite1h": 10,
+      "cacheRead": 0.5
+    },
+    "claude-opus-4-5": {
+      "input": 5,
+      "output": 25,
+      "cacheWrite5m": 6.25,
+      "cacheWrite1h": 10,
+      "cacheRead": 0.5
+    },
+    "claude-opus-4-1": {
+      "input": 15,
+      "output": 75,
+      "cacheWrite5m": 18.75,
+      "cacheWrite1h": 30,
+      "cacheRead": 1.5
+    },
+    "claude-opus-4": {
+      "input": 15,
+      "output": 75,
+      "cacheWrite5m": 18.75,
+      "cacheWrite1h": 30,
+      "cacheRead": 1.5
+    },
+    "claude-sonnet-5": {
+      "input": 2,
+      "output": 10,
+      "cacheWrite5m": 2.5,
+      "cacheWrite1h": 4,
+      "cacheRead": 0.2
+    },
+    "claude-sonnet-4-6": {
+      "input": 3,
+      "output": 15,
+      "cacheWrite5m": 3.75,
+      "cacheWrite1h": 6,
+      "cacheRead": 0.3
+    },
+    "claude-sonnet-4-5": {
+      "input": 3,
+      "output": 15,
+      "cacheWrite5m": 3.75,
+      "cacheWrite1h": 6,
+      "cacheRead": 0.3
+    },
+    "claude-sonnet-4": {
+      "input": 3,
+      "output": 15,
+      "cacheWrite5m": 3.75,
+      "cacheWrite1h": 6,
+      "cacheRead": 0.3
+    },
+    "claude-haiku-4-5": {
+      "input": 1,
+      "output": 5,
+      "cacheWrite5m": 1.25,
+      "cacheWrite1h": 2,
+      "cacheRead": 0.1
+    },
+    "claude-3-5-haiku": {
+      "input": 0.8,
+      "output": 4,
+      "cacheWrite5m": 1,
+      "cacheWrite1h": 1.6,
+      "cacheRead": 0.08
+    }
+  }
+}

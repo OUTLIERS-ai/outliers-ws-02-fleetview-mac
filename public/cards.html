@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FleetView cards</title>
+  <!-- Card layout from Stargx/claude-code-dashboard (MIT, (c) 2025 Cold Beam Games), rebuilt on
+       FleetView's /api/graph so both pages show the same sessions, totals, words and colours.
+       React 18.3.1 is served from public/vendor (MIT), so this page needs no internet. -->
+  <style>
+    :root {
+      --bg:#0a0c14; --card:#111624; --card-hover:#161c2e; --line:#232b44;
+      --text:#dfe6f5; --soft:#b4bfdb; --dim:#9aa6c4; --bright:#ffffff;
+      --work:#22dd88; --wait:#ffb640; --wait-old:#b8842f; --appr:#b98cff;
+      --idle:#6d7ea8; --done:#8a93b0; --red:#ff6b7a; --link:#8ab8ff; --track:#2a3350; --ring:#c8d2e8;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Cascadia Code', Consolas, 'SF Mono', Menlo, monospace; background:var(--bg); color:var(--text); min-height:100vh; }
+    #root { max-width:1400px; margin:0 auto; padding:20px; }
+    .header { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding:14px 18px;
+      background:var(--card); border:1px solid var(--line); border-radius:8px; margin-bottom:10px; }
+    .header-title { font-size:16px; font-weight:600; color:var(--bright); display:flex; align-items:center; gap:10px; }
+    .live { width:9px; height:9px; border-radius:50%; background:var(--work); }
+    .header-stats { display:flex; gap:20px; flex-wrap:wrap; font-size:13px; align-items:center; }
+    .stat-label { color:var(--dim); margin-right:6px; }
+    .stat-value { color:var(--bright); font-weight:600; }
+    .needs { background:var(--wait); color:#1a1200; font-weight:bold; border-radius:12px; padding:3px 11px; }
+    .needs.zero { background:#2a3350; color:var(--soft); }
+    a { color:var(--link); text-decoration:none; }
+    .note { font-size:12.5px; color:var(--soft); padding:4px 4px 14px; }
+    .stopped { background:#5a1420; color:#fff; border:1px solid var(--red); border-radius:8px; padding:10px 14px; margin-bottom:12px; font-size:14px; }
+    .stopped code { background:#000a; padding:1px 6px; border-radius:4px; }
+    .configbad { background:#5a3a14; color:#fff; border:1px solid var(--wait); border-radius:8px; padding:10px 14px; margin-bottom:12px; font-size:13.5px; }
+    .configbad code { background:#0006; padding:1px 6px; border-radius:4px; }
+    .needs.stale, .stat-value.stale { background:#2a3350; color:var(--soft); }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(400px, 1fr)); gap:16px; }
+    .card { background:var(--card); border:1px solid var(--line); border-left:5px solid var(--idle); border-radius:8px; padding:16px; }
+    .card:hover { background:var(--card-hover); }
+    .card.st-thinking { border-left-color:var(--work); }
+    .card.st-waiting { border-left-color:var(--wait); }
+    .card.st-waiting.older { border-left-color:var(--wait-old); }
+    .card.st-approval { border-left-color:var(--appr); }
+    .card.st-finished { border-left-color:var(--idle); }
+    .card.st-done { border-left-color:var(--done); }
+    .card.stale { opacity:.55; }
+    .card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:10px; }
+    .card-title { font-size:15px; font-weight:600; color:var(--bright); word-break:break-word; }
+    .card-sub { font-size:12.5px; color:var(--dim); margin-top:3px; }
+    .card-sub .open { color:var(--link); cursor:pointer; }
+    .card-sub .open.missing { text-decoration:line-through; color:var(--dim); cursor:default; }
+    .pill { font-size:12px; padding:3px 9px; border-radius:12px; font-weight:600; white-space:nowrap; }
+    .pill.thinking { color:#062014; background:var(--work); }
+    .pill.waiting { color:#1a1200; background:var(--wait); }
+    .pill.waiting.older { color:#1a1200; background:var(--wait-old); }
+    .pill.approval { color:#190a2e; background:var(--appr); }
+    .pill.finished { color:#e6ecf8; background:#3a4568; }
+    .pill.idle { color:#e6ecf8; background:#3a4568; }
+    .pill.done { color:#0d1020; background:var(--done); }
+    .wait-line { font-size:13px; color:#ffd699; background:rgba(255,182,64,.1); border-radius:6px; padding:6px 9px; margin-bottom:10px; }
+    .wait-line.approval { color:#ddc8ff; background:rgba(185,140,255,.12); }
+    .answered-line { font-size:13px; color:var(--soft); background:rgba(109,126,168,.12); border-radius:6px; padding:6px 9px; margin-bottom:10px; }
+    .card-meta { display:grid; grid-template-columns:1fr 1fr; gap:6px 16px; margin-bottom:12px; font-size:13px; }
+    .meta-item { display:flex; justify-content:space-between; gap:8px; }
+    .meta-key { color:var(--dim); }
+    .meta-val { color:var(--text); font-weight:500; text-align:right; }
+    .bar-label { font-size:12.5px; color:var(--dim); margin-bottom:4px; display:flex; justify-content:space-between; }
+    .bar { height:6px; background:var(--track); border-radius:3px; overflow:hidden; margin-bottom:12px; }
+    .bar-fill { height:100%; border-radius:3px; }
+    .files { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px; }
+    .file { font-size:12px; padding:2px 6px; background:#16203a; border-radius:3px; color:#a9c8ff; }
+    .helpers { border-top:1px solid var(--line); padding-top:8px; margin-bottom:10px; font-size:12.5px; }
+    .helper { display:flex; gap:6px; align-items:center; padding:2px 0; color:var(--soft); }
+    .dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+    .log-toggle { font:inherit; font-size:12.5px; color:var(--link); cursor:pointer; border:none; background:none; padding:4px 0; }
+    .log { margin-top:8px; max-height:220px; overflow-y:auto; font-size:12.5px; line-height:1.6; }
+    .log-entry { display:flex; gap:8px; color:var(--soft); }
+    .log-time { color:var(--dim); flex-shrink:0; min-width:48px; }
+    .log-type { flex-shrink:0; min-width:42px; font-weight:600; }
+    .log-type.tool { color:#ffc987; } .log-type.user { color:#8fdcff; } .log-type.think { color:#c9d2ea; }
+    .empty { text-align:center; padding:80px 20px; color:var(--soft); font-size:14px; line-height:1.6; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="/vendor/react.production.min.js"></script>
+  <script src="/vendor/react-dom.production.min.js"></script>
+  <script>
+    'use strict';
+    const { useState, useEffect, useCallback } = React;
+    const e = React.createElement;
+    const WORDS = { thinking:'working', waiting:'asked you something', approval:'may need approval',
+      finished:'answered, asked nothing', idle:'idle', done:'marked as done' };
+    const showAll = new URLSearchParams(location.search).get('all') === '1';
+
+    function loadDone(){ try { return JSON.parse(localStorage.getItem('fv-done') || '{}'); } catch(x){ return {}; } }
+    function shown(s, done){ return ((s.status === 'waiting' || s.status === 'approval') && done[s.sessionId] && done[s.sessionId] === s.waitingSince) ? 'done' : s.status; }
+    // The folder line: the folder you named in config, then the working folder,
+    // and only once when they are the same word ("Second Brain · Second Brain").
+    function folderLine(s){
+      const group = s.group || 'Other';
+      const folder = s.label || '';
+      return { group, folder: (folder && folder !== group) ? folder : '' };
+    }
+    function sig3(v){ return v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2); }
+    function fmtTok(n){ n = n || 0; if (n >= 1e9) return sig3(n/1e9)+'B'; if (n >= 1e6) return sig3(n/1e6)+'M'; return Math.round(n).toLocaleString('en-GB'); }
+    function money(v){ v = v || 0; return '$' + (v >= 100 ? v.toFixed(0) : v.toFixed(2)); }
+    function cost(s){ return (s.priceKnown || s.costUSD > 0) ? money(s.costUSD) : 'no price'; }
+    function agoWords(iso){ if (!iso) return '-'; const m = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime())/60000));
+      if (m < 1) return 'less than a minute ago'; if (m < 60) return m + (m === 1 ? ' minute ago' : ' minutes ago');
+      const h = Math.floor(m/60); return h + (h === 1 ? ' hour ' : ' hours ') + (m % 60) + ' minutes ago'; }
+    function hhmm(iso){ return iso ? new Date(iso).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }) : ''; }
+    function modelName(m){ if (!m) return 'unknown';
+      const x = m.toLowerCase().match(/claude-(fable|mythos|opus|sonnet|haiku)-(\d+)(?:-(\d{1,2}))?(?!\d)/);
+      return (x ? x[1][0].toUpperCase() + x[1].slice(1) + ' ' + x[2] + (x[3] ? '.' + x[3] : '') : m) + (/\[1m\]$/i.test(m) ? ' (1M window)' : ''); }
+    function nameOf(s){ return s.title || s.label || s.sessionId.slice(0, 8); }
+
+    function SessionCard({ s, st }) {
+      const [open, setOpen] = useState(false);
+      const [missing, setMissing] = useState(false);
+      const pct = s.contextPct || 0;
+      const openFolder = () => {
+        fetch('/api/open-folder', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ path: s.cwd }) })
+          .then(r => { if (!r.ok) setMissing(true); }).catch(() => setMissing(true));
+      };
+      const fl = folderLine(s);
+      const perm = s.permissionMode === 'bypassPermissions' ? ' · skips permission checks' : s.permissionMode === 'acceptEdits' ? ' · edits without asking' : '';
+      return e('div', { className: 'card st-' + st + (st === 'waiting' && s.waitBand === 'older' ? ' older' : '') },
+        e('div', { className: 'card-header' },
+          e('div', null,
+            e('div', { className: 'card-title' }, nameOf(s)),
+            e('div', { className: 'card-sub' },
+              fl.folder ? fl.group + ' · ' : '',
+              s.cwd ? e('span', { className: 'open' + (missing ? ' missing' : ''), title: missing ? 'Folder not found: ' + s.cwd : 'Open this folder in your file manager: ' + s.cwd,
+                onClick: missing ? undefined : openFolder }, fl.folder || fl.group) : fl.group,
+              (s.gitBranch ? ' · git branch ' + s.gitBranch : '') + perm)
+          ),
+          e('span', { className: 'pill ' + st + (st === 'waiting' && s.waitBand === 'older' ? ' older' : '') }, WORDS[st] || st)
+        ),
+        st === 'waiting' || st === 'approval' ? e('div', { className: 'wait-line' + (st === 'approval' ? ' approval' : '') }, st === 'approval'
+          ? 'Asked to run a tool ' + agoWords(s.waitingSince) + ' and nothing came back: it may be waiting for your yes, or a long command is running.'
+          : 'Claude asked ' + agoWords(s.waitingSince) + ' and nobody has answered.')
+          : st === 'finished' ? e('div', { className: 'answered-line' }, 'Answered ' + agoWords(s.finishedSince) + ' and asked nothing.') : null,
+        e('div', { className: 'card-meta' },
+          e('div', { className: 'meta-item' }, e('span', { className: 'meta-key' }, 'Model'), e('span', { className: 'meta-val' }, modelName(s.model))),
+          e('div', { className: 'meta-item' }, e('span', { className: 'meta-key' }, 'If paid per token'), e('span', { className: 'meta-val', title: s.priceKnown || s.costUSD > 0 ? '' : (s.unpricedModels || []).join(', ') + ' has no row in lib/prices.json, so it is left out of the $ total' }, cost(s))),
+          e('div', { className: 'meta-item' }, e('span', { className: 'meta-key' }, 'Output tokens'), e('span', { className: 'meta-val' }, fmtTok(s.tokensOut))),
+          e('div', { className: 'meta-item' }, e('span', { className: 'meta-key' }, 'Re-read tokens'), e('span', { className: 'meta-val' }, fmtTok(s.cacheRead))),
+          e('div', { className: 'meta-item' }, e('span', { className: 'meta-key' }, 'Turns'), e('span', { className: 'meta-val' }, s.turnCount || 0)),
+          e('div', { className: 'meta-item' }, e('span', { className: 'meta-key' }, 'Last wrote at'), e('span', { className: 'meta-val' }, hhmm(s.lastEventAt)))
+        ),
+        e('div', { className: 'bar-label' }, e('span', null, 'Context window (' + ((s.contextWindow || 200000) >= 1000000 ? '1,000,000' : '200,000') + ' tokens)'), e('span', null, pct + '% full')),
+        e('div', { className: 'bar' }, e('div', { className: 'bar-fill', style: { width: pct + '%', background: pct > 85 ? 'var(--red)' : 'var(--ring)' } })),
+        (s.activeFiles || []).length ? e('div', { className: 'files' }, s.activeFiles.map((f, i) => e('span', { key: i, className: 'file' }, f))) : null,
+        (s.subagents || []).length ? e('div', { className: 'helpers' }, 'Helper agents (' + s.subagents.length + ')',
+          s.subagents.map((x, i) => e('div', { key: i, className: 'helper' },
+            e('span', { className: 'dot', style: { background: x.status === 'thinking' ? 'var(--work)' : 'var(--idle)' } }),
+            (x.agentType ? x.agentType + ': ' : '') + (x.task || x.agentId), ' · ' + fmtTok(x.tokensOut) + ' tokens written'))) : null,
+        e('button', { className: 'log-toggle', onClick: () => setOpen(!open) }, open ? '− hide last steps' : '+ show last steps (' + (s.recentLog || []).length + ')'),
+        open ? e('div', { className: 'log' }, (s.recentLog || []).slice().reverse().map((l, i) =>
+          e('div', { key: i, className: 'log-entry' }, e('span', { className: 'log-time' }, hhmm(l.time)), e('span', { className: 'log-type ' + l.type }, l.type), e('span', null, l.msg)))) : null
+      );
+    }
+
+    function Dashboard() {
+      const [data, setData] = useState(null);
+      const [lastOk, setLastOk] = useState(0);
+      const [fails, setFails] = useState(0);
+      const [done, setDone] = useState(loadDone());
+      const [meta, setMeta] = useState(null);
+      useEffect(() => {
+        const read = () => fetch('/api/meta', { cache: 'no-store' }).then(r => r.json()).then(setMeta).catch(() => {});
+        read(); const iv = setInterval(read, 30000); return () => clearInterval(iv);
+      }, []);
+      const fetchData = useCallback(() => {
+        fetch('/api/graph' + (showAll ? '?all=1' : ''), { cache: 'no-store' })
+          .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+          .then(d => { setData(d); setLastOk(Date.now()); setFails(0); setDone(loadDone()); })
+          .catch(() => setFails(f => f + 1));
+      }, []);
+      useEffect(() => { fetchData(); const iv = setInterval(fetchData, 2000); return () => clearInterval(iv); }, [fetchData]);
+      const stopped = fails >= 2;
+      const t = data ? data.totals : null;
+      const sessions = data ? data.sessions : [];
+      const needs = sessions.filter(s => shown(s, done) === 'waiting').length;
+      const approvals = sessions.filter(s => shown(s, done) === 'approval').length;
+      const stoppedAt = stopped && lastOk ? new Date(lastOk).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }) : '';
+      const cfg = meta && meta.configError;
+      return e('div', null,
+        e('div', { className: 'header' },
+          e('div', { className: 'header-title' }, e('span', { className: 'live', style: { background: stopped ? 'var(--red)' : 'var(--work)' } }), 'FleetView cards'),
+          e('div', { className: 'header-stats' },
+            e('span', { className: 'needs' + (needs && !stopped ? '' : ' zero'),
+              title: stopped ? 'FleetView stopped. This is how it stood at ' + stoppedAt + '.' : 'Sessions where Claude asked you something and nobody has answered' },
+              needs + (stopped ? ' needed you at ' + stoppedAt : (needs === 1 ? ' needs you' : ' need you'))),
+            e('span', null, e('span', { className: 'stat-label' }, 'working'), e('span', { className: 'stat-value' }, t ? t.working : 0)),
+            e('span', { title: 'Claude asked to run a tool and nothing came back. Not counted in "need you".' },
+              e('span', { className: 'stat-label' }, 'may need approval'), e('span', { className: 'stat-value' }, approvals)),
+            e('span', null, e('span', { className: 'stat-label' }, 'sessions today'), e('span', { className: 'stat-value' }, t ? t.sessions : 0),
+              data && data.hidden ? e('span', null, ' (' + data.hidden + ' idle not shown · ', e('a', { href: '?all=1' }, 'show all'), ')') : null),
+            e('span', null, e('span', { className: 'stat-label' }, 'tokens'), e('span', { className: 'stat-value' }, fmtTok(t ? t.tokens : 0))),
+            e('span', null, e('span', { className: 'stat-label' }, 'if paid per token'), e('span', { className: 'stat-value' }, money(t ? t.costUSD : 0))),
+            e('a', { href: '/graph.html' + (showAll ? '?all=1' : '') }, 'open the graph view')
+          )
+        ),
+        cfg ? e('div', { className: 'configbad' },
+          e('b', null, 'Your settings file could not be read. '), cfg.message,
+          ' Until it is fixed none of your folder names are in use. FleetView kept port ' + (cfg.port || '') +
+          ', the port it last ran on.') : null,
+        e('div', { className: 'note' }, '$ = what these tokens would cost if you paid per token, not money taken from your subscription. Same sessions and totals as the graph page. The sessions that asked you something come first, newest first.'),
+        stopped ? e('div', { className: 'stopped' }, e('b', null, 'FleetView stopped. '), 'This page is not getting updates any more' + (lastOk ? ' (last update ' + new Date(lastOk).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }) + ')' : '') + '. Start it again with ', e('code', null, 'python install.py --start'), '; this page carries on by itself.') : null,
+        !data ? null : sessions.length === 0
+          ? e('div', { className: 'empty' }, 'No Claude Code sessions today yet. Start one in any folder and it appears here within 2 seconds.')
+          : e('div', { className: 'grid' }, sessions.map(s => e('div', { key: s.sessionId, className: stopped ? 'stale' : '' }, e(SessionCard, { s, st: shown(s, done) }))))
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(e(Dashboard));
+  </script>
+</body>
+</html>

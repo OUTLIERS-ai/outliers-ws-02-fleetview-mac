@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FleetView</title>
+<style>
+  :root {
+    --bg:#0a0c14; --bar:#0f1320; --line:#232b44; --text:#dfe6f5; --soft:#b4bfdb; --dim:#9aa6c4;
+    --work:#22dd88; --wait:#ffb640; --wait-old:#b8842f; --appr:#b98cff;
+    --idle:#6d7ea8; --done:#8a93b0; --red:#ff6b7a; --link:#8ab8ff;
+  }
+  html, body { margin:0; padding:0; height:100%; background:var(--bg); overflow:hidden;
+    font-family:"Cascadia Code","Consolas","SF Mono",Menlo,monospace; color:var(--text); }
+  #top { position:fixed; top:0; left:0; right:0; z-index:10; background:var(--bar); border-bottom:1px solid var(--line); }
+  #hud { display:flex; align-items:center; gap:8px 18px; flex-wrap:wrap; padding:9px 16px; font-size:13px; }
+  #hud .title { font-weight:bold; color:#fff; letter-spacing:1px; }
+  #hud .live { width:9px; height:9px; border-radius:50%; background:var(--work); display:inline-block; margin-right:7px; }
+  #hud .stat { color:var(--dim); }
+  #hud .stat b { color:var(--text); font-weight:600; }
+  #hud .fresh { color:var(--dim); font-size:12px; }
+  #needs-count { background:var(--wait); color:#1a1200; font-weight:bold; border-radius:12px; padding:3px 11px; font-size:14px; }
+  #needs-count.zero { background:#2a3350; color:var(--soft); }
+  #hud button.gauge { font:inherit; font-size:13px; background:#161c2e; color:var(--soft); border:1px solid var(--line);
+    border-radius:6px; padding:3px 9px; cursor:pointer; }
+  #hud button.gauge b { color:inherit; }
+  #hud a { color:var(--link); text-decoration:none; }
+  #hud .unpriced { color:var(--dim); border-bottom:1px dotted var(--dim); cursor:help; }
+  #needs { display:flex; align-items:center; gap:7px; flex-wrap:wrap; padding:7px 16px 9px; border-top:1px solid var(--line); font-size:13px;
+    overflow:hidden; }
+  #needs .lbl { color:var(--wait); font-weight:bold; }
+  #needs .none { color:var(--dim); }
+  #needs button { font:inherit; font-size:13px; cursor:pointer; background:rgba(255,182,64,.12); color:#ffd699;
+    border:1px solid rgba(255,182,64,.45); border-radius:14px; padding:3px 11px; }
+  #needs button.older { background:rgba(184,132,47,.10); color:#e2c48d; border-color:rgba(184,132,47,.45); }
+  #needs button .age { color:#fff; font-weight:bold; }
+  #needs button.more { background:#161c2e; color:var(--link); border-color:var(--line); }
+  /* FleetView has stopped: nothing in the top bar may keep claiming to be live */
+  #top.stopped #needs-count { background:#2a3350; color:var(--soft); }
+  #top.stopped #needs .lbl { color:var(--soft); }
+  #top.stopped #needs button { background:#161c2e; color:var(--soft); border-color:var(--line); }
+  #configbad { display:none; padding:9px 16px; background:#5a3a14; color:#fff; font-size:13.5px; border-top:1px solid #ffb640; }
+  #configbad b { color:#ffe0ad; }
+  #configbad code { background:#0006; padding:1px 6px; border-radius:4px; }
+  #stopped { display:none; padding:9px 16px; background:#5a1420; color:#fff; font-size:14px; border-top:1px solid #ff6b7a; }
+  #stopped b { color:#ffd0d6; }
+  #stopped code { background:#000a; padding:1px 6px; border-radius:4px; }
+  #foot { position:fixed; left:0; right:0; bottom:0; z-index:10; padding:7px 16px; font-size:12px; color:var(--soft);
+    background:var(--bar); border-top:1px solid var(--line); display:flex; gap:6px 18px; flex-wrap:wrap; align-items:center; }
+  #foot .k { display:inline-block; width:11px; height:11px; border-radius:50%; margin:0 6px -1px 0; }
+  #foot .ring { display:inline-block; width:10px; height:10px; border-radius:50%; border:2px solid var(--soft); margin:0 6px -2px 0; }
+  #foot .sat { display:inline-block; width:6px; height:6px; border-radius:50%; border:1.5px solid var(--work); margin:0 6px 0 0; }
+  #foot b { color:var(--text); }
+  #foot a { color:var(--link); text-decoration:none; margin-left:auto; }
+  canvas { display:block; }
+  #tip { position:fixed; z-index:20; pointer-events:none; display:none; max-width:340px; background:#161c2e; border:1px solid #3a4568;
+    border-radius:6px; padding:8px 10px; font-size:12.5px; line-height:1.45; color:var(--text); box-shadow:0 4px 18px #0008; }
+  #tip .h { font-weight:bold; color:#fff; margin-bottom:2px; }
+  #tip .d { color:var(--soft); }
+  #panel { position:fixed; right:0; width:380px; background:rgba(13,16,26,.98); border-left:1px solid var(--line);
+    padding:14px 16px; overflow-y:auto; font-size:13px; display:none; z-index:9; box-sizing:border-box; }
+  #panel.open { display:block; }
+  #panel h2 { font-size:15px; margin:0 0 3px; color:#fff; word-break:break-word; }
+  #panel .meta { color:var(--dim); margin-bottom:10px; word-break:break-all; }
+  #panel .status { padding:7px 9px; border-radius:6px; margin-bottom:10px; background:#161c2e; }
+  #panel .row { display:flex; justify-content:space-between; gap:10px; padding:3px 0; }
+  #panel .row span:first-child { color:var(--dim); }
+  #panel .row span:last-child { text-align:right; }
+  #panel .files span { display:inline-block; background:#16203a; color:#a9c8ff; border-radius:3px; padding:1px 6px; margin:3px 4px 0 0; }
+  #panel .log { margin-top:10px; border-top:1px solid var(--line); padding-top:8px; }
+  #panel .log div { padding:4px 0; border-bottom:1px solid #151a2a; color:var(--soft); word-break:break-word; }
+  #panel .log .t-tool b { color:#ffc987; } #panel .log .t-user b { color:#8fdcff; } #panel .log .t-think b { color:#c9d2ea; }
+  #panel .x { color:var(--dim); }
+  #panel .close, #panel .done { font:inherit; font-size:12.5px; cursor:pointer; border-radius:5px; padding:3px 9px; }
+  #panel .close { float:right; background:none; color:#ff9aa6; border:1px solid #5a2a36; }
+  #panel .done { background:#2a2410; color:#ffd699; border:1px solid #6a5420; margin-top:6px; }
+  #panel .note { color:var(--dim); margin-top:10px; font-size:12px; }
+  #empty { position:fixed; top:42%; left:0; right:0; text-align:center; color:var(--soft); font-size:14px; line-height:1.6; display:none; padding:0 20px; }
+</style>
+</head>
+<body>
+<div id="top">
+  <div id="hud">
+    <span class="title"><span class="live" id="live"></span>FLEETVIEW</span>
+    <span id="needs-count" class="zero" title="Sessions where Claude asked you something and nobody has answered">0 need you</span>
+    <span class="stat">working <b id="h-working">0</b></span>
+    <span class="stat" id="s-appr" title="Claude asked to run a tool and nothing has come back. It may be waiting for your yes, or a long command is running. These are not counted in 'need you'.">may need approval <b id="h-appr">0</b></span>
+    <span class="stat" id="s-sessions">sessions today <b id="h-sessions">0</b> <span id="h-hidden"></span></span>
+    <span class="stat" title="Helper agents (subagents) working right now">helpers <b id="h-helpers">0</b></span>
+    <span class="stat" id="s-tok">tokens <b id="h-tok">0</b></span>
+    <span class="stat" id="s-cost">$ <b id="h-cost">0</b> <span id="h-unpriced" class="unpriced"></span></span>
+    <button class="gauge" id="s-window" title="Your current 5-hour usage window, Claude Code only (from ccusage). Click to set your own 5-hour token budget.">5-hour window: <b id="h-window">…</b></button>
+    <button class="gauge" id="s-week" title="Your last 7 days, Claude Code only (from ccusage). Click to set your own weekly token budget.">7 days: <b id="h-week">…</b></button>
+    <span class="fresh" id="h-fresh"></span>
+  </div>
+  <div id="needs"><span class="lbl">Needs you:</span><span class="none">nothing is waiting for you</span></div>
+  <div id="configbad"></div>
+  <div id="stopped"></div>
+</div>
+<canvas id="cv"></canvas>
+<div id="empty"></div>
+<div id="tip"></div>
+<div id="panel"></div>
+<div id="foot">
+  <span><span class="k" style="background:var(--work)"></span>working</span>
+  <span><span class="k" style="background:var(--wait)"></span>asked you something</span>
+  <span><span class="k" style="background:var(--wait-old)"></span>asked you over 30 minutes ago</span>
+  <span><span class="k" style="background:var(--appr)"></span>may need approval (a tool is waiting)</span>
+  <span><span class="k" style="background:var(--idle)"></span>idle, or answered and asked nothing</span>
+  <span><span class="k" style="background:var(--done)"></span>✓ marked as done by you</span>
+  <span><span class="ring"></span>ring = how full the context window is · <span style="color:var(--red)">!</span> over 85% full</span>
+  <span>Letter = Claude model: <b>O</b> Opus · <b>S</b> Sonnet · <b>F</b> Fable · <b>M</b> Mythos · <b>H</b> Haiku · <b>?</b> other</span>
+  <span><b>1M</b> = can keep 1 million tokens in view · M = million, B = billion</span>
+  <span><span class="sat"></span>small dot = helper agent (hover it for its job)</span>
+  <span id="f-cost"><b>$</b> = what these tokens would cost if you paid per token, not money taken from your subscription</span>
+  <a href="/cards.html">open the card view</a>
+</div>
+<script>
+'use strict';
+// done is 6.2:1 against the background (it was 3.21:1) and carries a white tick,
+// because 2 greys 1 step apart are not a difference anyone can see.
+const C = { thinking:'#22dd88', waiting:'#ffb640', waitingOld:'#b8842f', approval:'#b98cff',
+  finished:'#6d7ea8', idle:'#6d7ea8', done:'#8a93b0', stale:'#3d4660',
+  track:'#2a3350', ringFill:'#c8d2e8', red:'#ff6b7a', hub:'#3a4568', edge:'rgba(110,140,210,0.28)', subEdge:'rgba(120,220,170,0.35)',
+  title:'#e6ecf8', sub:'#b4bfdb', letter:'#0a0c14' };
+const WORDS = { thinking:'Working', waiting:'Asked you something', approval:'May need your approval',
+  finished:'Answered, asked nothing', idle:'Idle', done:'Marked as done' };
+const OVER_FULL = 0.85;              // above this the context window gets a red ! beside the circle, never a red ring
+const NEEDS_MAX_SHARE = 0.15;        // the Needs you strip may never take more than 15% of the screen height
+const POLL_MS = 2000;                // how often the page asks FleetView for the sessions
+const FAILS_BEFORE_STOPPED = 2;      // 2 misses in a row, not 1, so a single slow answer is not called death
+const COLS_PER_FOLDER = 4;           // above this many sessions in 1 folder, the ring layout writes labels on top of each other
+const showAll = new URLSearchParams(location.search).get('all') === '1';
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let W = 0, H = 0, TOP = 90, BOTTOM = 40;
+function resize(){
+  const dpr = window.devicePixelRatio || 1;
+  W = innerWidth; H = innerHeight;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  measureBars();
+}
+function measureBars(){
+  TOP = document.getElementById('top').offsetHeight;
+  BOTTOM = document.getElementById('foot').offsetHeight;
+  const p = document.getElementById('panel'); p.style.top = TOP + 'px'; p.style.bottom = BOTTOM + 'px';
+}
+addEventListener('resize', resize); resize();
+
+const hubs = new Map(), nodes = new Map(), subNodes = new Map();
+let needsOpen = false;
+let selected = null, lastData = null, lastOkAt = 0, fails = 0, stopped = false, meta = {};
+
+// ---------- sessions the member marked as done (this browser only) ----------
+function loadDone(){ try { return JSON.parse(localStorage.getItem('fv-done') || '{}'); } catch(e){ return {}; } }
+function saveDone(d){ try { localStorage.setItem('fv-done', JSON.stringify(d)); } catch(e){} }
+let doneMap = loadDone();
+function shown(s){ // the status to draw: a waiting session the member marked as done is drawn as done
+  if ((s.status === 'waiting' || s.status === 'approval') && doneMap[s.sessionId] && doneMap[s.sessionId] === s.waitingSince) return 'done';
+  return s.status;
+}
+// The colour of a circle: waiting splits by age, so a 5-minute question and a
+// 45-minute one do not shout equally loudly.
+function colourOf(s, st){
+  if (st === 'waiting' && s.waitBand === 'older') return C.waitingOld;
+  return C[st] || C.idle;
+}
+function newestFirst(a, b){ return (b.waitingSince || '').localeCompare(a.waitingSince || ''); }
+
+// ---------- words and numbers ----------
+function modelLetter(m){ const x = (m||'').toLowerCase().match(/(fable|mythos|opus|sonnet|haiku)/); return x ? x[1][0].toUpperCase() : '?'; }
+function modelName(m){
+  if (!m) return 'unknown model';
+  const x = m.toLowerCase().match(/claude-(fable|mythos|opus|sonnet|haiku)-(\d+)(?:-(\d{1,2}))?(?!\d)/);
+  let n = x ? x[1][0].toUpperCase() + x[1].slice(1) + ' ' + x[2] + (x[3] ? '.' + x[3] : '') : m;
+  if (/\[1m\]$/i.test(m)) n += ', 1-million-token window';
+  return n;
+}
+function sig3(v){ return v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2); }
+function fmtTok(n){ n = n || 0;
+  if (n >= 1e9) return sig3(n/1e9) + 'B'; if (n >= 1e6) return sig3(n/1e6) + 'M';
+  return Math.round(n).toLocaleString('en-GB'); }
+function money(v){ v = v || 0; return '$' + (v >= 100 ? v.toFixed(0) : v.toFixed(2)); }
+function fmtCost(s){ return (s.priceKnown || s.costUSD > 0) ? money(s.costUSD) : 'no price'; }
+// What "now" is for every age on this page. While FleetView is running it is the
+// clock. Once it has stopped it is the last update, so the ages under the circles
+// and in the Needs you strip freeze with the count in the bar above them instead
+// of counting up against a server that is not there.
+function nowRef(){ return stopped && lastOkAt ? lastOkAt : Date.now(); }
+function ago(iso){
+  if (!iso) return '';
+  const m = Math.max(0, Math.floor((nowRef() - new Date(iso).getTime()) / 60000));
+  if (m < 1) return 'just now'; if (m < 60) return m + ' min'; const h = Math.floor(m/60); return h + ' hr ' + (m % 60) + ' min';
+}
+function sinceWords(iso){ const a = ago(iso); return a === 'just now' ? 'just now' : a + ' ago'; }
+function agoWords(iso){
+  const m = Math.max(0, Math.floor((nowRef() - new Date(iso).getTime()) / 60000));
+  if (m < 1) return 'less than a minute ago'; if (m === 1) return '1 minute ago'; if (m < 60) return m + ' minutes ago';
+  const h = Math.floor(m/60); return h + (h === 1 ? ' hour ' : ' hours ') + (m % 60) + ' minutes ago';
+}
+function waitLine(s){
+  if (s.status === 'approval') return 'Asked to run a tool ' + agoWords(s.waitingSince) + ' and nothing has come back: it may be waiting for your yes, or a long command is running.';
+  if (s.status === 'finished') return 'Answered ' + agoWords(s.finishedSince) + ' and asked nothing, so there is nothing for you to do.';
+  return 'Claude asked ' + agoWords(s.waitingSince) + ' and nobody has answered.';
+}
+// 1 needs you, 2 need you. Written once, so a folder heading and the top bar
+// cannot disagree: the folder headings used to read "3 sessions, 1 need you".
+function needWords(n){ return n + (n === 1 ? ' needs you' : ' need you'); }
+function esc(x){ const d = document.createElement('div'); d.textContent = x == null ? '' : String(x); return d.innerHTML; }
+function nameOf(s){ return s.title || ((s.gitBranch && s.gitBranch !== 'HEAD') ? s.gitBranch : (s.label || s.sessionId.slice(0,8))); }
+
+function showConfigError(m){
+  const el = document.getElementById('configbad');
+  const e = m && m.configError;
+  el.style.display = e ? 'block' : 'none';
+  el.innerHTML = e ? '<b>Your settings file could not be read.</b> ' + esc(e.message) +
+    ' Until it is fixed none of your folder names are in use. FleetView kept port ' + esc(e.port || '') +
+    ', the port it last ran on.' : '';
+  measureBars();
+}
+function pollMeta(){
+  fetch('/api/meta', { cache:'no-store' }).then(r => r.json()).then(m => {
+    meta = m;
+    document.getElementById('f-cost').innerHTML = '<b>$</b> = what these tokens would cost if you paid per token, not money taken from your subscription (prices checked ' + esc(m.pricesChecked) + ')';
+    showConfigError(m);
+  }).catch(() => {});
+}
+pollMeta(); setInterval(pollMeta, 30000);
+
+// ---------- data ----------
+async function poll(){
+  try {
+    const r = await fetch('/api/graph' + (showAll ? '?all=1' : ''), { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    lastData = data; lastOkAt = Date.now(); fails = 0; setStopped(false);
+    layout(data.sessions);
+    updateHud(data);
+    updateEmpty(data);
+    if (selected) renderPanel(selected);
+  } catch (e) {
+    fails++;
+    if (fails >= FAILS_BEFORE_STOPPED) setStopped(true);
+  }
+  document.getElementById('h-fresh').textContent = lastOkAt ? 'updated ' + Math.round((Date.now() - lastOkAt) / 1000) + 's ago' : '';
+}
+// When FleetView dies the whole screen has to agree. The circles used to go
+// grey while the pill above them still shouted "6 need you" in full amber.
+function setStoppedWords(on){
+  const when = lastOkAt ? new Date(lastOkAt).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}) : '';
+  document.getElementById('top').classList.toggle('stopped', on);
+  const nc = document.getElementById('needs-count');
+  if (on && lastData){
+    const n = lastData.sessions.filter(s => shown(s) === 'waiting').length;
+    nc.textContent = n + ' needed you at ' + when;
+    nc.title = 'FleetView stopped. This is how it stood at ' + when + '.';
+  }
+}
+function setStopped(on){
+  if (on === stopped) { setStoppedWords(on); return; }
+  stopped = on;
+  const el = document.getElementById('stopped');
+  el.style.display = on ? 'block' : 'none';
+  el.innerHTML = on ? '<b>FleetView stopped.</b> This page is not getting updates any more' +
+    (lastOkAt ? ' (last update ' + new Date(lastOkAt).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}) + ')' : '') +
+    '. What you see may be out of date. Start it again with <code>python install.py --start</code> in the FleetView folder; this page carries on by itself.' : '';
+  document.getElementById('live').style.background = on ? C.red : C.thinking;
+  setStoppedWords(on);
+  // The strip's ages are drawn from nowRef(). Drawing it again here is what
+  // freezes them: without this the strip counted up under a frozen bar.
+  if (lastData) updateHud(lastData);
+  measureBars();
+  if (lastData) layout(lastData.sessions);
+}
+function updateEmpty(data){
+  const el = document.getElementById('empty');
+  if (data.totals.sessions) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.innerHTML = meta.logsFolderFound === false
+    ? 'FleetView cannot see your Claude Code log folder yet:<br><b>' + esc(meta.logsFolder) + '</b><br>That is normal before your first Claude Code session. It starts reading the folder by itself as soon as the folder appears.'
+    : 'No Claude Code sessions today yet. Start one in any folder and it appears here within 2 seconds.<br>To see what it looks like with made-up sessions, run <b>npm run demo</b> in the FleetView folder.';
+}
+
+// ---------- layout ----------
+// Small day: 1 hub per folder, sessions round it, the ones that asked you
+// something first from the top.
+// Busy day: 1 column per folder, sessions listed down it, labels to the right.
+// Columns start as soon as ANY folder has more than 4 sessions, because from 5
+// up the ring puts neighbouring titles 9 pixels apart and they read as 1 line.
+const RANK = { waiting:0, approval:1, thinking:2, finished:3, done:4, idle:5 };
+let COLS = false;
+function place(s, tx, ty, h, extra){
+  let n = nodes.get(s.sessionId);
+  if (!n){ n = { x:h.tx, y:h.ty, tx, ty, data:s, pulse:0, lastEventAt:s.lastEventAt }; nodes.set(s.sessionId, n); }
+  else { n.tx = tx; n.ty = ty; if (s.lastEventAt !== n.lastEventAt){ n.pulse = 1; n.lastEventAt = s.lastEventAt; } n.data = s; }
+  Object.assign(n, extra);
+  return n;
+}
+function placeSubs(s, subPos){
+  const subIds = new Set();
+  (s.subagents || []).forEach((sub, j) => {
+    const key = s.sessionId + '/' + sub.agentId; subIds.add(key);
+    const [sx, sy] = subPos(j, s.subagents.length);
+    let sn = subNodes.get(key);
+    if (!sn){ const p = nodes.get(s.sessionId); sn = { x:p.x, y:p.y, tx:sx, ty:sy, data:sub, parent:s.sessionId }; subNodes.set(key, sn); }
+    else { sn.tx = sx; sn.ty = sy; sn.data = sub; }
+  });
+  for (const k of [...subNodes.keys()]) if (k.startsWith(s.sessionId + '/') && !subIds.has(k)) subNodes.delete(k);
+}
+function layout(sessions){
+  const panelW = document.getElementById('panel').classList.contains('open') ? 380 : 0;
+  const Weff = W - panelW, cx = Weff/2;
+  const areaH = H - TOP - BOTTOM, cy = TOP + areaH/2;
+  const byGroup = new Map();
+  for (const s of sessions){ const g = s.group || 'Other'; if (!byGroup.has(g)) byGroup.set(g, []); byGroup.get(g).push(s); }
+  const groups = [...byGroup.keys()].sort((a,b) => (a==='Other') - (b==='Other') || a.localeCompare(b));
+  for (const list of byGroup.values()) list.sort((a,b) => (RANK[shown(a)] - RANK[shown(b)]) || (a.sessionId > b.sessionId ? 1 : -1));
+  const busiest = Math.max(0, ...[...byGroup.values()].map(l => l.length));
+  COLS = sessions.length > 12 || busiest > COLS_PER_FOLDER;
+  const live = new Set();
+  if (COLS){
+    const colW = Math.max(200, (Weff - 24) / groups.length), rowH = 50, top = TOP + 58;
+    const rows = Math.max(3, Math.floor((H - BOTTOM - top - 10) / rowH));
+    groups.forEach((g, i) => {
+      const x0 = 12 + i * colW, list = byGroup.get(g);
+      const sub = Math.max(1, Math.ceil(list.length / rows)), subW = colW / sub;
+      const tx = x0 + 22, ty = TOP + 30;
+      if (!hubs.has(g)) hubs.set(g, { x:tx, y:ty, tx, ty, label:g }); else { const h = hubs.get(g); h.tx = tx; h.ty = ty; }
+      const h = hubs.get(g); h.count = list.length; h.waiting = list.filter(s => shown(s) === 'waiting').length;
+      list.forEach((s, k) => {
+        live.add(s.sessionId);
+        const c = Math.floor(k / rows), r = k % rows;
+        const nx = x0 + c * subW + 30, ny = top + r * rowH + 12;
+        place(s, nx, ny, h, { chars: Math.max(8, Math.floor((subW - 70) / 7.8)) });
+        placeSubs(s, (j) => [nx - 20 + j * 9, ny - 17]);
+      });
+    });
+  } else {
+    const Rx = Math.max(160, Weff * 0.30), Ry = Math.max(60, Math.min(areaH * 0.30, areaH / 2 - 150));
+    groups.forEach((g, i) => {
+      const a = (i / groups.length) * Math.PI * 2 - Math.PI/2;
+      const tx = groups.length === 1 ? cx : cx + Math.cos(a) * Rx;
+      const ty = groups.length === 1 ? cy : cy + Math.sin(a) * Ry;
+      if (!hubs.has(g)) hubs.set(g, { x:tx, y:ty, tx, ty, label:g }); else { const h = hubs.get(g); h.tx = tx; h.ty = ty; }
+    });
+    for (const [g, list] of byGroup){
+      const h = hubs.get(g);
+      h.count = list.length; h.waiting = list.filter(s => shown(s) === 'waiting').length;
+      const r = 100 + Math.max(0, list.length - 5) * 14;
+      list.forEach((s, i) => {
+        live.add(s.sessionId);
+        const a = (i / list.length) * Math.PI * 2 - Math.PI/2;
+        const tx = h.tx + Math.cos(a) * r, ty = Math.min(H - BOTTOM - 62, Math.max(TOP + 34, h.ty + Math.sin(a) * r));
+        place(s, tx, ty, h, { chars: 26 });
+        // Helpers sit ABOVE their session. The session's title and cost are
+        // written below it, and a helper used to be dropped straight on top of them.
+        placeSubs(s, (j, n) => { const sa = -Math.PI/2 + (j - (n - 1) / 2) * 0.45; return [tx + Math.cos(sa) * 50, ty + Math.sin(sa) * 50]; });
+      });
+    }
+  }
+  for (const g of [...hubs.keys()]) if (!byGroup.has(g)) hubs.delete(g);
+  for (const id of [...nodes.keys()]) if (!live.has(id)) { nodes.delete(id); for (const k of [...subNodes.keys()]) if (k.startsWith(id + '/')) subNodes.delete(k); }
+}
+
+// ---------- top bar ----------
+function updateHud(data){
+  const t = data.totals;
+  const waiting = data.sessions.filter(s => shown(s) === 'waiting').sort(newestFirst);
+  const marked = data.sessions.filter(s => shown(s) === 'done').length;
+  const nc = document.getElementById('needs-count');
+  nc.textContent = needWords(waiting.length);
+  nc.className = waiting.length ? '' : 'zero';
+  const older = waiting.filter(s => s.waitBand === 'older').length;
+  nc.title = waiting.length
+    ? 'Claude asked ' + (waiting.length === 1 ? 'you something in 1 session' : 'you something in ' + waiting.length + ' sessions') +
+      ' and nobody has answered' + (older ? '; ' + older + ' of them asked over 30 minutes ago' : '') + '.'
+    : 'No session is waiting on an answer from you.';
+  document.getElementById('h-working').textContent = t.working;
+  document.getElementById('h-appr').textContent = data.sessions.filter(s => shown(s) === 'approval').length;
+  document.getElementById('h-sessions').textContent = t.sessions;
+  document.getElementById('h-helpers').textContent = t.helpers;
+  const hid = document.getElementById('h-hidden');
+  hid.innerHTML = data.hidden ? '(' + data.hidden + ' idle not drawn · <a href="?all=1">show all</a>)' : (showAll ? '(<a href="graph.html">trim idle</a>)' : '');
+  document.getElementById('h-tok').textContent = fmtTok(t.tokens);
+  const pct = t.tokens ? Math.round(t.cacheRead / t.tokens * 100) : 0;
+  document.getElementById('s-tok').title = 'All tokens today, every session counted. ' + pct + '% of them are re-reads of text Claude had already been sent (cache reads), the cheapest kind.';
+  document.getElementById('h-cost').textContent = sig(t.costUSD);
+  document.getElementById('s-cost').title = 'What these tokens would cost if you paid per token (prices checked ' + (meta.pricesChecked || '') + '). Not money taken from your subscription. Every session today is counted.';
+  const up = document.getElementById('h-unpriced');
+  up.textContent = t.unpricedTokens ? '+' + fmtTok(t.unpricedTokens) + ' tokens with no price' : '';
+  up.title = t.unpricedTokens ? (t.unpricedModels.join(', ') + ' has no row in lib/prices.json, so its tokens are left out of the $ total rather than guessed. Add a row to price them.') : '';
+  // The strip: newest question first, wrapping into as many rows as fit, and
+  // never taller than 15% of the screen. It used to name the 3 stalest on 1 row
+  // while 300 pixels of screen below the circles sat empty.
+  const box = document.getElementById('needs');
+  const maxH = Math.max(34, Math.round(H * NEEDS_MAX_SHARE));
+  const tail = (marked ? '<span class="none"> (' + marked + ' marked as done)</span>' : '');
+  const buttonFor = (s) => '<button class="' + (s.waitBand === 'older' ? 'older' : '') + '" data-id="' + esc(s.sessionId) + '" title="' + esc(waitLine(s)) + '">' +
+    esc(nameOf(s)) + ' · <span class="age">' + esc(ago(s.waitingSince)) + '</span></button>';
+  const render = (n) => {
+    const more = waiting.length - n;
+    box.innerHTML = '<span class="lbl">Needs you:</span>' + (waiting.length
+      ? waiting.slice(0, n).map(buttonFor).join('') : '<span class="none">nothing is waiting for you</span>') +
+      (more > 0 ? '<button class="more" id="needs-more">+' + more + ' older</button>'
+                : (needsOpen && waiting.length > 1 ? '<button class="more" id="needs-more">show fewer</button>' : '')) + tail;
+  };
+  box.style.maxHeight = maxH + 'px';
+  box.style.overflowY = needsOpen ? 'auto' : 'hidden';
+  let n = waiting.length;
+  render(n);
+  if (!needsOpen) while (n > 1 && box.scrollHeight > maxH + 2) { n--; render(n); }
+  box.querySelectorAll('button[data-id]').forEach(b => b.onclick = () => { const node = nodes.get(b.dataset.id); if (node) renderPanel(node.data); });
+  const mb = document.getElementById('needs-more');
+  if (mb) mb.onclick = () => { needsOpen = !needsOpen; updateHud(lastData); if (lastData) layout(lastData.sessions); };
+  if (stopped) setStoppedWords(true);
+  measureBars();
+}
+function sig(v){ return (v || 0) >= 100 ? (v || 0).toFixed(0) : (v || 0).toFixed(2); }
+
+// ---------- drawing ----------
+// Text with a dark edge, so lines passing behind a label never cut through it.
+function label(text, x, y, font, colour){
+  ctx.font = font; ctx.lineJoin = 'round'; ctx.lineWidth = 5; ctx.strokeStyle = '#0a0c14';
+  ctx.strokeText(text, x, y); ctx.fillStyle = colour; ctx.fillText(text, x, y);
+}
+const turns = (n) => (n || 0) + ((n || 0) === 1 ? ' turn' : ' turns');
+function draw(){
+  ctx.clearRect(0, 0, W, H);
+  const lerp = (n) => { n.x += (n.tx - n.x) * 0.08; n.y += (n.ty - n.y) * 0.08; };
+  const t = Date.now() / 1000;
+  ctx.textAlign = 'center';
+  if (!COLS) for (const n of nodes.values()){ const h = hubs.get(n.data.group || 'Other'); if (!h) continue;
+    ctx.strokeStyle = C.edge; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(h.x, h.y); ctx.lineTo(n.x, n.y); ctx.stroke(); }
+  for (const sn of subNodes.values()){ const p = nodes.get(sn.parent); if (!p) continue;
+    ctx.strokeStyle = C.subEdge; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(sn.x, sn.y); ctx.stroke(); }
+  for (const h of hubs.values()){
+    lerp(h);
+    ctx.fillStyle = C.hub; ctx.beginPath(); ctx.arc(h.x, h.y, 8, 0, 7); ctx.fill();
+    const hidden = lastData && lastData.hiddenByGroup ? lastData.hiddenByGroup[h.label] : 0;
+    if (COLS){
+      ctx.textAlign = 'left';
+      label(h.label + ': ' + h.count + (h.count === 1 ? ' session' : ' sessions') + (h.waiting ? ', ' + needWords(h.waiting) : '') + (hidden ? ', +' + hidden + ' idle not drawn' : ''), h.x + 16, h.y + 5, 'bold 14px Consolas, monospace', '#c9d4f0');
+      ctx.textAlign = 'center';
+    } else {
+      label(h.label, h.x, h.y - 15, 'bold 14px Consolas, monospace', '#c9d4f0');
+      if (hidden) label('+' + hidden + ' idle not drawn', h.x, h.y + 24, '12px Consolas, monospace', C.sub);
+    }
+  }
+  for (const n of nodes.values()){
+    lerp(n);
+    const s = n.data, st = stopped ? 'stale' : shown(s), col = stopped ? C.stale : colourOf(s, st), r = COLS ? 14 : 18;
+    if (!stopped && n.pulse > 0){ ctx.strokeStyle = col; ctx.globalAlpha = n.pulse * 0.6; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(n.x, n.y, r + (1 - n.pulse) * 24, 0, 7); ctx.stroke(); ctx.globalAlpha = 1; n.pulse -= 0.02; }
+    if (st === 'thinking'){ ctx.fillStyle = col; ctx.globalAlpha = 0.16 + Math.sin(t*3) * 0.07;
+      ctx.beginPath(); ctx.arc(n.x, n.y, r + 11, 0, 7); ctx.fill(); ctx.globalAlpha = 1; }
+    if (st === 'waiting' && s.waitBand !== 'older'){ ctx.strokeStyle = col; ctx.globalAlpha = 0.45 + Math.sin(t*2) * 0.35; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(n.x, n.y, r + (COLS ? 9 : 12), 0, 7); ctx.stroke(); ctx.globalAlpha = 1; }
+    // context ring: always the same neutral colour. Over 85% used to turn the
+    // ring red, which put 2 alarm colours on 1 dot 14 pixels across.
+    const pct = (s.contextPct || 0) / 100;
+    ctx.strokeStyle = C.track; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(n.x, n.y, r + 5, 0, 7); ctx.stroke();
+    ctx.strokeStyle = C.ringFill;
+    ctx.beginPath(); ctx.arc(n.x, n.y, r + 5, -Math.PI/2, -Math.PI/2 + pct * Math.PI * 2); ctx.stroke();
+    // status fills the circle
+    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 7); ctx.fill();
+    if (selected && selected.sessionId === s.sessionId){ ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(n.x, n.y, r + 16, 0, 7); ctx.stroke(); }
+    if (st === 'done'){
+      // a tick, not a shade: 2 greys 1 step apart are not a difference anyone can see
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.beginPath();
+      ctx.moveTo(n.x - r*0.42, n.y + r*0.02); ctx.lineTo(n.x - r*0.10, n.y + r*0.36); ctx.lineTo(n.x + r*0.46, n.y - r*0.36); ctx.stroke(); ctx.lineCap = 'butt';
+    } else {
+      ctx.fillStyle = st === 'stale' ? C.title : C.letter; ctx.font = 'bold ' + (COLS ? 13 : 15) + 'px Consolas, monospace'; ctx.fillText(modelLetter(s.model), n.x, n.y + (COLS ? 4.5 : 5));
+    }
+    if (!stopped && pct > OVER_FULL){
+      // over 85% of the context window: its own red !, away from the status colour
+      const bx = n.x + r + 4, by = n.y - r - 2;
+      ctx.fillStyle = C.red; ctx.beginPath(); ctx.arc(bx, by, 6.5, 0, 7); ctx.fill();
+      ctx.fillStyle = '#2a0308'; ctx.font = 'bold 10px Consolas, monospace'; ctx.fillText('!', bx, by + 3.5);
+    }
+    const nm = nameOf(s), max = n.chars || 26;
+    const line2 = (st === 'waiting' ? 'asked you ' + sinceWords(s.waitingSince)
+      : st === 'approval' ? 'may need approval · ' + ago(s.waitingSince)
+      : st === 'finished' ? 'answered ' + sinceWords(s.finishedSince) + ' · ' + fmtCost(s)
+      : st === 'done' ? 'done · was waiting ' + ago(s.waitingSince)
+      : fmtCost(s) + ' · ' + turns(s.turnCount)) + (COLS && s.contextWindow >= 1000000 ? ' · 1M' : '');
+    if (COLS){
+      ctx.textAlign = 'left';
+      label(nm.length > max ? nm.slice(0, max - 1) + '…' : nm, n.x + r + 17, n.y - 2, '13px Consolas, monospace', C.title);
+      label(line2.length > max ? line2.slice(0, max - 1) + '…' : line2, n.x + r + 17, n.y + 14, '12px Consolas, monospace', C.sub);
+      ctx.textAlign = 'center';
+    } else {
+      if (s.contextWindow >= 1000000) label('1M', n.x + r + 16, n.y - r + 2, 'bold 12px Consolas, monospace', C.sub);
+      label(nm.length > max ? nm.slice(0, max - 1) + '…' : nm, n.x, n.y + r + 19, '13px Consolas, monospace', C.title);
+      label(line2, n.x, n.y + r + 34, '12px Consolas, monospace', C.sub);
+    }
+  }
+  for (const sn of subNodes.values()){
+    lerp(sn);
+    if (COLS && !nodes.has(sn.parent)) continue;
+    const working = !stopped && sn.data.status === 'thinking', col = working ? C.thinking : '#7d88aa';
+    if (working){ ctx.fillStyle = col; ctx.globalAlpha = 0.2 + Math.sin(t*4) * 0.1; ctx.beginPath(); ctx.arc(sn.x, sn.y, 10, 0, 7); ctx.fill(); ctx.globalAlpha = 1; }
+    ctx.fillStyle = '#0e1322'; ctx.beginPath(); ctx.arc(sn.x, sn.y, 6, 0, 7); ctx.fill();
+    ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(sn.x, sn.y, 6, 0, 7); ctx.stroke();
+    // The helper's name is on its hover label, not on the drawing: written on the
+    // drawing it landed on whatever session was nearest. Both layouts do the same.
+  }
+  requestAnimationFrame(draw);
+}
+
+// ---------- hover labels and clicks ----------
+function hit(x, y){
+  for (const n of nodes.values()) if (Math.hypot(x - n.x, y - n.y) < (COLS ? 20 : 26) || (COLS && x > n.x && x < n.x + 8 * (n.chars || 20) + 30 && Math.abs(y - n.y) < 18)) return { kind:'session', n };
+  for (const sn of subNodes.values()) if (Math.hypot(x - sn.x, y - sn.y) < 12) return { kind:'helper', n:sn };
+  for (const h of hubs.values()) if (Math.hypot(x - h.x, y - h.y) < 14) return { kind:'hub', n:h };
+  return null;
+}
+const tip = document.getElementById('tip');
+cv.addEventListener('mousemove', (e) => {
+  const h = hit(e.clientX, e.clientY);
+  cv.style.cursor = h && h.kind === 'session' ? 'pointer' : 'default';
+  if (!h){ tip.style.display = 'none'; return; }
+  let html = '';
+  if (h.kind === 'session'){
+    const s = h.n.data, st = shown(s);
+    const hasLine = st === 'waiting' || st === 'approval' || st === 'finished';
+    html = '<div class="h">' + esc(nameOf(s)) + '</div><div>' + esc(WORDS[st] || st) + (hasLine ? ': ' + esc(waitLine(s)) : '') + '</div>' +
+      '<div class="d">' + esc(modelName(s.model)) + ' (letter ' + modelLetter(s.model) + ')' + (s.contextWindow >= 1000000 ? ' · 1M = 1-million-token window' : '') + '</div>' +
+      '<div class="d">' + esc(fmtCost(s)) + (s.priceKnown || s.costUSD > 0 ? ' if paid per token' : ': this model has no row in lib/prices.json') + ' · ' + turns(s.turnCount) + '</div>' +
+      '<div class="d">ring: context window ' + (s.contextPct || 0) + '% full' + ((s.contextPct || 0) > OVER_FULL * 100 ? ' — the red ! means it is nearly full' : '') + '</div><div class="d">Click for detail</div>';
+  } else if (h.kind === 'helper'){
+    const d = h.n.data;
+    html = '<div class="h">Helper agent' + (d.agentType ? ': ' + esc(d.agentType) : '') + '</div><div>' + (d.status === 'thinking' ? 'working' : 'finished or resting') + '</div>' +
+      (d.task ? '<div class="d">' + esc(d.task) + '</div>' : '') + '<div class="d">A helper (subagent) the session started in the last 30 minutes</div>';
+  } else {
+    const g = h.n;
+    html = '<div class="h">Folder: ' + esc(g.label) + '</div><div class="d">' + g.count + ' session(s) drawn today' + (g.waiting ? ', ' + g.waiting + ' asked you something' : '') + '</div>';
+  }
+  tip.innerHTML = html; tip.style.display = 'block';
+  const x = Math.min(e.clientX + 16, innerWidth - tip.offsetWidth - 8), y = Math.min(e.clientY + 16, innerHeight - tip.offsetHeight - 8);
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+});
+cv.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+cv.addEventListener('click', (e) => {
+  const h = hit(e.clientX, e.clientY);
+  if (h && h.kind === 'session'){ renderPanel(h.n.data); return; }
+  closePanel();
+});
+addEventListener('keydown', (e) => { if (e.key === 'Escape') closePanel(); });
+function closePanel(){ selected = null; document.getElementById('panel').classList.remove('open'); if (lastData) layout(lastData.sessions); }
+
+function collapseLog(list){
+  const out = [];
+  for (const l of list){ const last = out[out.length - 1];
+    if (last && last.type === l.type && last.msg === l.msg) last.n++; else out.push({ ...l, n:1 }); }
+  return out;
+}
+const WINDOW_WHY = { 'model id':'1,000,000 tokens, because the model name ends in [1m]', 'seen above 200k':'1,000,000 tokens, because a reply used more than 200,000', 'assumed':'taken as 200,000 tokens, because nothing yet shows it is the 1,000,000 window' };
+const LOG_WORDS = { user:'you typed', think:'Claude thinking', tool:'Claude used' };
+function renderPanel(s){
+  const live = nodes.get(s.sessionId); if (live) s = live.data; selected = s;
+  const p = document.getElementById('panel');
+  if (!p.classList.contains('open')){ p.classList.add('open'); if (lastData) layout(lastData.sessions); }
+  const st = shown(s), win = (s.contextWindow || 200000) >= 1000000 ? '1,000,000 tokens' : '200,000 tokens';
+  const statusHtml = '<div class="status" style="border-left:4px solid ' + colourOf(s, st) + '"><b>' + esc(WORDS[st] || st) + '</b>' +
+    (['waiting', 'approval', 'finished'].includes(s.status) ? '<br>' + esc(waitLine(s)) : '') +
+    (st === 'waiting' || st === 'approval' ? '<br><button class="done" id="mark-done">Mark as done (stop showing it as waiting)</button>' : '') +
+    (st === 'done' ? '<br><button class="done" id="mark-undo">Show it as waiting again</button>' : '') + '</div>';
+  const priced = s.priceKnown || s.costUSD > 0;
+  p.innerHTML =
+    '<button class="close" id="close-panel">close (Esc)</button>' +
+    '<h2>' + esc(nameOf(s)) + '</h2><div class="meta">' + esc(s.group) + ' · ' + esc(s.cwd) + '</div>' + statusHtml +
+    '<div class="row"><span>model</span><span>' + esc(modelName(s.model)) + '</span></div>' +
+    (s.gitBranch ? '<div class="row"><span>git branch (version of the code)</span><span>' + esc(s.gitBranch) + '</span></div>' : '') +
+    '<div class="row"><span>$ if paid per token</span><span>' + (priced ? esc(money(s.costUSD)) : 'no price') + '</span></div>' +
+    (s.unpricedTokens ? '<div class="row"><span>tokens with no price</span><span>' + fmtTok(s.unpricedTokens) + '</span></div><div class="x">' + esc((s.unpricedModels || []).join(', ')) + ' has no row in lib/prices.json, so these tokens are left out of the $ figure rather than guessed.</div>' : '') +
+    '<div class="row"><span>turns (replies)</span><span>' + (s.turnCount || 0) + '</span></div>' +
+    '<div class="row"><span>output tokens</span><span>' + fmtTok(s.tokensOut) + '</span></div>' +
+    '<div class="row"><span>input tokens</span><span>' + fmtTok(s.tokensIn) + '</span></div>' +
+    '<div class="row"><span>re-read context (cache read)</span><span>' + fmtTok(s.cacheRead) + '</span></div>' +
+    '<div class="row"><span>total tokens</span><span>' + fmtTok((s.tokensIn||0) + (s.tokensOut||0) + (s.cacheCreate||0) + (s.cacheRead||0)) + '</span></div>' +
+    '<div class="row"><span>context window</span><span>' + (s.contextPct || 0) + '% of ' + win + '</span></div>' +
+    '<div class="x">Window size: ' + esc(WINDOW_WHY[s.contextWindowSource] || s.contextWindowSource || '') + '</div>' +
+    '<div class="row"><span>helpers (last 30 min)</span><span>' + (s.subagents || []).length + '</span></div>' +
+    (s.subagents || []).map(x => '<div class="row"><span style="color:' + (x.status === 'thinking' ? C.thinking : '#9aa6c4') + '">↳ ' + esc(((x.agentType ? x.agentType + ': ' : '') + (x.task || x.agentId)).slice(0, 48)) + '</span><span>' + fmtTok(x.tokensOut) + ' written</span></div>').join('') +
+    '<div class="files">' + (s.activeFiles || []).map(f => '<span>' + esc(f) + '</span>').join('') + '</div>' +
+    '<div class="log">' + collapseLog((s.recentLog || []).slice().reverse()).map(l =>
+      '<div class="t-' + esc(l.type) + '">' + new Date(l.time).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}) + ' <b>' + esc(LOG_WORDS[l.type] || l.type) + '</b> ' + esc((l.msg || '').slice(0, 110)) + (l.n > 1 ? ' <span class="x">×' + l.n + '</span>' : '') + '</div>').join('') + '</div>' +
+    '<div class="note">The $ figure includes this session\'s helper agents.</div>';
+  document.getElementById('close-panel').onclick = closePanel;
+  const md = document.getElementById('mark-done'); if (md) md.onclick = () => { doneMap[s.sessionId] = s.waitingSince; saveDone(doneMap); poll(); };
+  const mu = document.getElementById('mark-undo'); if (mu) mu.onclick = () => { delete doneMap[s.sessionId]; saveDone(doneMap); poll(); };
+}
+
+// ---------- budgets (saved in this browser only; FleetView never invents a plan limit) ----------
+function load(k){ try { return +localStorage.getItem(k) || 0; } catch(e){ return 0; } }
+function save(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
+let windowBudget = load('windowBudget'), weekBudget = load('weekBudget');
+function setBudget(which){
+  const cur = which === 'window' ? windowBudget : weekBudget;
+  const ans = prompt('Set your ' + (which === 'window' ? '5-hour window' : '7-day') + ' budget in tokens, for example 200M or 1.5B. Leave it blank to clear it:', cur ? fmtTok(cur) : '');
+  if (ans === null) return;
+  let v = 0;
+  if (ans.trim()){
+    const m = ans.trim().match(/^([\d.]+)\s*([kKmMbB]?)$/);
+    if (!m || isNaN(parseFloat(m[1]))){ alert('FleetView could not read "' + ans + '". Type a number of tokens, such as 200M or 1.5B. Your budget was not changed.'); return; }
+    v = parseFloat(m[1]); const u = m[2].toLowerCase(); v *= u === 'b' ? 1e9 : u === 'm' ? 1e6 : u === 'k' ? 1e3 : 1;
+  }
+  if (which === 'window'){ windowBudget = Math.round(v); save('windowBudget', windowBudget); }
+  else { weekBudget = Math.round(v); save('weekBudget', weekBudget); }
+  if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+  pollUsage();
+}
+document.getElementById('s-window').onclick = () => setBudget('window');
+document.getElementById('s-week').onclick = () => setBudget('week');
+function budgetColour(value, budget){
+  if (!budget) return '#b4bfdb';               // no budget set: nothing to warn about
+  const r = value / budget;
+  return r >= 0.9 ? '#ff6b7a' : r >= 0.7 ? '#ffb640' : '#22dd88';
+}
+const notified = {};
+function notify(key, title, body){ if (notified[key]) return; notified[key] = true;
+  if ('Notification' in window && Notification.permission === 'granted') new Notification(title, { body }); }
+async function pollUsage(){
+  try {
+    const u = await (await fetch('/api/usage', { cache:'no-store' })).json();
+    const win = document.getElementById('s-window'), wel = document.getElementById('h-window');
+    const wkS = document.getElementById('s-week'), wkE = document.getElementById('h-week');
+    const demo = u.demo ? ' (made-up demo figures)' : '';
+    if (u.block){
+      const b = u.block, used = b.totalTokens || 0;
+      const proj = (b.projection && b.projection.totalTokens) || 0, mins = b.projection && b.projection.remainingMinutes;
+      wel.textContent = fmtTok(used) + ' tokens used' + (windowBudget ? ' of ' + fmtTok(windowBudget) + ' budget' : '') + (proj ? ', ' + fmtTok(proj) + ' projected by the end' : '') + (mins != null ? ', ' + mins + ' min until it resets' : '');
+      win.style.color = budgetColour(proj || used, windowBudget);
+      const tc = b.tokenCounts || {};
+      win.title = 'Current 5-hour window, Claude Code only' + demo + ': ' + new Date(b.startTime).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}) + ' to ' + new Date(b.endTime).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}) +
+        '\noutput ' + fmtTok(tc.outputTokens) + ' · input ' + fmtTok(tc.inputTokens) + ' · re-read context ' + fmtTok(tc.cacheReadInputTokens) +
+        '\n$' + (b.costUSD || 0).toFixed(2) + ' if paid per token' +
+        (windowBudget ? '\nYour budget: ' + fmtTok(windowBudget) + '. The colour follows the projected total. Click to change.' : '\nClick to set a 5-hour budget in tokens.');
+      if (windowBudget && proj > windowBudget) notify('win-' + b.id, '5-hour window projected over budget', fmtTok(proj) + ' projected vs ' + fmtTok(windowBudget) + ' budget (' + mins + ' min left)');
+    } else if (u.enabled === false){ wel.textContent = 'off'; win.title = u.error || ''; }
+    else if (u.error){ wel.textContent = 'not available'; win.title = u.error + '\nHover here any time to see why. See "When it goes wrong" in the guide.'; }
+    else { wel.textContent = u.fetchedAt ? 'no window open' : 'first check (up to 1 minute)…'; }
+    if (u.week){
+      const wt = u.week.tokens || 0;
+      wkE.textContent = fmtTok(wt) + ' tokens' + (weekBudget ? ' of ' + fmtTok(weekBudget) + ' budget' : '');
+      wkS.style.color = budgetColour(wt, weekBudget);
+      wkS.title = 'Last ' + (u.week.days || 7) + ' days with use, Claude Code only' + demo + ': ' + fmtTok(wt) + ' tokens, $' + (u.week.cost || 0).toFixed(2) + ' if paid per token' +
+        (weekBudget ? '\nYour budget: ' + fmtTok(weekBudget) + '. Click to change.' : '\nClick to set a 7-day budget in tokens.');
+      if (weekBudget && wt >= 0.9 * weekBudget) notify('week-' + new Date().toISOString().slice(0,10), '7-day usage near budget', fmtTok(wt) + ' of ' + fmtTok(weekBudget) + ' used in 7 days');
+    } else { wkE.textContent = u.enabled === false ? 'off' : (u.weekError ? 'not available' : '…'); if (u.weekError) wkS.title = u.weekError; }
+    if (u.demo){ wel.textContent += ' (made-up)'; wkE.textContent += ' (made-up)'; }
+  } catch(e) {}
+}
+poll(); setInterval(poll, POLL_MS);
+pollUsage(); setInterval(pollUsage, 15000);
+draw();
+</script>
+</body>
+</html>

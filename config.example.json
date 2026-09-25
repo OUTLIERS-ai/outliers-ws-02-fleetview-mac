@@ -1,0 +1,26 @@
+{
+  "port": 3010,
+  "host": "127.0.0.1",
+  "folders": [
+    {
+      "name": "Second Brain",
+      "path": "C:\\Users\\YOU\\Documents\\Second Brain"
+    },
+    {
+      "name": "CRM",
+      "path": "C:\\Users\\YOU\\Documents\\CRM"
+    },
+    {
+      "name": "Content Engine",
+      "path": "C:\\Users\\YOU\\Documents\\outliers-content-engine"
+    }
+  ],
+  "idle_per_folder": 3,
+  "waiting_hours": 1,
+  "fresh_minutes": 30,
+  "hide_paths": false,
+  "usage": {
+    "enabled": true,
+    "package": "ccusage@20.0.24"
+  }
+}

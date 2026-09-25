@@ -1,0 +1,14 @@
+node_modules/
+config.json
+*.tmp
+.env
+.DS_Store
+Thumbs.db
+__pycache__/
+.pytest_cache/
+fleetview.log
+fleetview.pid
+config.json.bak-*
+guide/*.pdf
+guide/*.html
+_superseded/
